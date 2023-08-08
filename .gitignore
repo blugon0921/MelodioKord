@@ -1,0 +1,5 @@
+# 프로젝트 제외 경로
+/.idea
+/.gradle
+/build
+/src/main/kotlin/kr/blugon/melodio/Settings.kt
