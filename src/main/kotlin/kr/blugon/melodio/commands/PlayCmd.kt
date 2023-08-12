@@ -1,6 +1,5 @@
 package kr.blugon.melodio.commands
 
-import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
@@ -8,37 +7,26 @@ import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.embed
 import dev.kord.rest.builder.message.modify.embed
-import dev.schlaubi.lavakord.audio.Event
-import dev.schlaubi.lavakord.audio.TrackEndEvent
-import dev.schlaubi.lavakord.audio.TrackStartEvent
-import dev.schlaubi.lavakord.audio.on
+import dev.schlaubi.lavakord.audio.Link
 import dev.schlaubi.lavakord.kord.connectAudio
 import dev.schlaubi.lavakord.rest.loadItem
 import dev.schlaubi.lavakord.rest.models.TrackResponse
 import kr.blugon.melodio.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules
 import kr.blugon.melodio.Modules.addThisButtons
 import kr.blugon.melodio.Modules.getThumbnail
 import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Modules.timeFormat
-import kr.blugon.melodio.Modules.usedUser
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.StringOption
+import kr.blugon.melodio.api.LinkAddon.varVolume
+import kr.blugon.melodio.api.LinkAddon.voiceChannel
 import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.color
 import kr.blugon.melodio.api.LogColor.inColor
-import kr.blugon.melodio.api.PlayerAddon.destroy
-import kr.blugon.melodio.api.PlayerAddon.isEventAdded
-import kr.blugon.melodio.api.PlayerAddon.repeatMode
-import kr.blugon.melodio.api.PlayerAddon.varVolume
 import kr.blugon.melodio.api.Queue.Companion.addEvent
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.api.QueueItem
-import kr.blugon.melodio.api.RepeatMode
-import java.lang.IndexOutOfBoundsException
+import kr.blugon.melodio.api.StringOption
 
 class PlayCmd: Command {
     override val command = "play"
@@ -63,17 +51,47 @@ class PlayCmd: Command {
                 }
                 return@on
             }
-            val response = interaction.deferPublicResponse()
 
-            val link = kord.manager.getLink(interaction.guildId.value)
+            val link = bot.manager.getLink(interaction.guildId.value)
+            if(link.voiceChannel == null) link.voiceChannel = voiceChannel.channelId
+            if(link.state == Link.State.CONNECTED || link.state == Link.State.CONNECTING) { //이미 연결 되어 있으면
+                if(voiceChannel.channelId != link.voiceChannel) {
+                    interaction.respondEphemeral {
+                        embed {
+                            title = "**봇과 같은 음성 채널에 접속해있지 않습니다**"
+                            color = Settings.COLOR_ERROR
+                        }
+                    }
+                    return@on
+                }
+            }
 
             val player = link.player
-            var url = interaction.command.strings["song"]!!
+            var url = interaction.command.strings["song"]
+            val file = interaction.command.attachments["file"]
+            val isShuffle = interaction.command.booleans["shuffle"]?: false
 
-            if(!player.isEventAdded) {
-                player.addEvent(link)
-                player.isEventAdded = true
+            if(file != null) {
+                interaction.respondEphemeral {
+                    embed {
+                        title = "**아직 지원하지 않는 기능입니다**"
+                        color = Settings.COLOR_ERROR
+                    }
+                }
+                return@on
             }
+            if(url == null) {
+                interaction.respondEphemeral {
+                    embed {
+                        title = "**재생할 노래를 적어주세요**"
+                        color = Settings.COLOR_ERROR
+                    }
+                }
+                return@on
+            }
+
+            val response = interaction.deferPublicResponse()
+            link.addEvent()
 
             if(!url.startsWith("http")) {
                 url = "ytsearch:$url"
@@ -86,8 +104,8 @@ class PlayCmd: Command {
             when(item.loadType) {
                 TrackResponse.LoadType.TRACK_LOADED -> {
                     val track = item.tracks.first()
-                    player.queue.add(track) {
-                        this.volume = player.varVolume
+                    link.queue.add(track) {
+                        this.volume = link.varVolume
                     }
                     response.respond {
                         embed {
@@ -113,8 +131,8 @@ class PlayCmd: Command {
                 }
                 TrackResponse.LoadType.PLAYLIST_LOADED -> {
                     val tracks = item.tracks
-                    player.queue.add(tracks[0]) {
-                        this.volume = player.varVolume
+                    link.queue.add(tracks[0]) {
+                        this.volume = link.varVolume
                     }
                     response.respond {
                         embed {
@@ -140,15 +158,15 @@ class PlayCmd: Command {
                         components = mutableListOf(addThisButtons)
                     }
                     for(i in 1 until tracks.size) {
-                        player.queue.add(QueueItem(tracks[i]) {
-                            this.volume = player.varVolume
+                        link.queue.add(QueueItem(tracks[i]) {
+                            this.volume = link.varVolume
                         })
                     }
                 }
                 TrackResponse.LoadType.SEARCH_RESULT -> {
                     val track = item.tracks.first()
-                    player.queue.add(track) {
-                        this.volume = player.varVolume
+                    link.queue.add(track) {
+                        this.volume = link.varVolume
                     }
                     response.respond {
                         embed {
@@ -173,7 +191,7 @@ class PlayCmd: Command {
                     }
                 }
                 TrackResponse.LoadType.NO_MATCHES -> {
-                    if(player.playingTrack == null) link.destroy()
+                    if(link.queue.current == null) link.destroy()
                     response.respond {
                         embed {
                             title = "**영상을 찾을 수 없습니다**"
@@ -183,7 +201,7 @@ class PlayCmd: Command {
                     return@on
                 }
                 TrackResponse.LoadType.LOAD_FAILED -> {
-                    if(player.playingTrack == null) link.destroy()
+                    if(link.queue.current == null) link.destroy()
                     response.respond {
                         embed {
                             title = "**영상을 검색하는중 오류가 발생했습니다**"
@@ -193,6 +211,8 @@ class PlayCmd: Command {
                     return@on
                 }
             }
+            if(player.paused) player.unPause()
+            if(isShuffle) link.queue.shuffle()
         }
     }
 }

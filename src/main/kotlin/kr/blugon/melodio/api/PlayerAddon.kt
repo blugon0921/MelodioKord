@@ -1,66 +1,97 @@
 package kr.blugon.melodio.api
 
+import dev.kord.common.entity.Snowflake
+import dev.kord.core.entity.Guild
 import dev.schlaubi.lavakord.audio.Link
-import dev.schlaubi.lavakord.audio.player.Player
+import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.api.Queue.Companion.destroy
 import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.events.VoiceStateUpdate.Companion.destroyThread
+import kr.blugon.melodio.events.VoiceStateUpdate.Companion.playerDestroyThread
 
 
-object PlayerAddon {
-    val playerVolume = HashMap<Player, Int>()
-    var Player.varVolume: Int
+object LinkAddon {
+    val linkVolume = HashMap<Link, Int>()
+    var Link.varVolume: Int
         get() {
-            if(playerVolume[this] == null) playerVolume[this] = 50
-            return playerVolume[this]!!
+            if(linkVolume[this] == null) linkVolume[this] = 50
+            return linkVolume[this]!!
         }
         set(value) {
-            playerVolume[this] = value
+            linkVolume[this] = value
         }
 
-    val eventAdded = HashMap<Player, Boolean>()
-    var Player.isEventAdded: Boolean
+    val eventAdded = HashMap<Snowflake, Boolean>()
+    suspend fun Link.isEventAdded(): Boolean {
+        if(eventAdded[this.getGuild().id] == null) eventAdded[this.getGuild().id] = false
+        return eventAdded[this.getGuild().id]!!
+    }
+    suspend fun Link.isEventAdded(value: Boolean) {
+        eventAdded[this.getGuild().id] = value
+    }
+
+    val linkRepeatMode = HashMap<Link, RepeatMode>()
+    var Link.repeatMode: RepeatMode
         get() {
-            if(eventAdded[this] == null) eventAdded[this] = false
-            return eventAdded[this]!!
+            if(linkRepeatMode[this] == null) linkRepeatMode[this] = RepeatMode.OFF
+            return linkRepeatMode[this]!!
         }
         set(value) {
-            eventAdded[this] = value
+            linkRepeatMode[this] = value
         }
 
-    val playerRepeatMode = HashMap<Player, RepeatMode>()
-    var Player.repeatMode: RepeatMode
+    val linkIsRepeatShuffle = HashMap<Link, Boolean>()
+    var Link.isRepeatedShuffle: Boolean
         get() {
-            if(playerRepeatMode[this] == null) playerRepeatMode[this] = RepeatMode.OFF
-            return playerRepeatMode[this]!!
+            if(linkIsRepeatShuffle[this] == null) linkIsRepeatShuffle[this] = false
+            return linkIsRepeatShuffle[this]!!
         }
         set(value) {
-            playerRepeatMode[this] = value
+            linkIsRepeatShuffle[this] = value
+        }
+    val linkRepeatShuffleCount = HashMap<Link, Int>()
+    var Link.repeatedShuffleCount: Int
+        get() {
+            if(linkRepeatShuffleCount[this] == null) linkRepeatShuffleCount[this] = 0
+            return linkRepeatShuffleCount[this]!!
+        }
+        set(value) {
+            linkRepeatShuffleCount[this] = value
         }
 
-    val playerIsRepeatShuffle = HashMap<Player, Boolean>()
-    var Player.isRepeatedShuffle: Boolean
+    val linkVoiceChannel = HashMap<ULong, Snowflake?>()
+    var Link.voiceChannel: Snowflake?
         get() {
-            if(playerIsRepeatShuffle[this] == null) playerIsRepeatShuffle[this] = false
-            return playerIsRepeatShuffle[this]!!
+            if(linkVoiceChannel[this.guildId] == null) linkVoiceChannel[this.guildId] = null
+            return linkVoiceChannel[this.guildId]
         }
         set(value) {
-            playerIsRepeatShuffle[this] = value
-        }
-    val playerRepeatShuffleCount = HashMap<Player, Int>()
-    var Player.repeatedShuffleCount: Int
-        get() {
-            if(playerRepeatShuffleCount[this] == null) playerRepeatShuffleCount[this] = 0
-            return playerRepeatShuffleCount[this]!!
-        }
-        set(value) {
-            playerRepeatShuffleCount[this] = value
+            linkVoiceChannel[this.guildId] = value
         }
 
-    suspend fun Player.destroy(link: Link) {
+
+    val LinkGuild = HashMap<Link, Snowflake>()
+    suspend fun Link.getGuild(): Guild {
+        return bot.getGuild(LinkGuild[this]!!)
+    }
+    fun Link.setGuild(value: Guild) {
+        LinkGuild[this] = value.id
+    }
+
+    suspend fun Link.destroyPlayer() {
         this.queue.destroy()
-        playerVolume.remove(this)
-        link.destroy()
-        link.disconnectAudio()
+        linkVolume.remove(this)
+        linkRepeatMode.remove(this)
+        linkIsRepeatShuffle.remove(this)
+        linkRepeatShuffleCount.remove(this)
+        LinkGuild.remove(this)
+        linkVoiceChannel.remove(this.guildId)
+        if(this.destroyThread != null) {
+            this.destroyThread!!.stopFlag = true
+        }
+        playerDestroyThread.remove(this.guildId)
+        this.destroy()
+        this.disconnectAudio()
     }
 }
 

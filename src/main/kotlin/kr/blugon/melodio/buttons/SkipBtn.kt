@@ -1,33 +1,35 @@
-package kr.blugon.melodio.commands
+package kr.blugon.melodio.buttons
 
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
-import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
+import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
 import dev.kord.core.kordLogger
 import dev.kord.core.on
+import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
 import dev.schlaubi.lavakord.audio.Link
-import kr.blugon.melodio.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Modules.stringLimit
+import kr.blugon.melodio.Modules.usedUser
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.api.LinkAddon.destroyPlayer
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.api.Queue.Companion.skip
 
-class ResumeCmd: Command {
-    override val command = "resume"
-    override val description = "노래 일시정지를 해제합니다"
-    override val options = null
+class SkipBtn {
+    val name = "skipButton"
 
-    suspend fun execute() {
-        kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
-        bot.on<GuildChatInputCommandInteractionCreateEvent> {
-            if(interaction.command.rootName != command) return@on
+    fun execute() {
+        kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
+        bot.on<GuildButtonInteractionCreateEvent> {
+            if(interaction.component.customId != name) return@on
             val voiceChannel = interaction.user.getVoiceStateOrNull()
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
@@ -44,7 +46,6 @@ class ResumeCmd: Command {
 
             val player = link.player
 
-
             val current = link.queue.current
             if(current == null) {
                 interaction.respondEphemeral {
@@ -56,23 +57,29 @@ class ResumeCmd: Command {
                 return@on
             }
 
-            if(!player.paused) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "**노래가 이미 재생중입니다**"
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-            } else {
-                player.pause(false)
-                interaction.respondPublic {
-                    embed {
-                        title = "**:arrow_forward: 노래 일시정지를 해제했습니다**"
-                        color = Settings.COLOR_NORMAL
-                        description = "[**${stringLimit(current.title.replace("[", "［").replace("]", "［"))}**](${current.uri})"
-                    }
-                    components.add(buttons)
-                }
+            val track = link.skip()
+            val embed = EmbedBuilder()
+            embed.title = "**:track_next: 노래 1개를 건너뛰었습니다**"
+            embed.description = """
+                [**${stringLimit(current.title.replace("[", "［").replace("]", "［"))}**](${current.uri})
+                
+                
+                **곡 없음**
+            """.trimIndent()
+            if(track != null) {
+                embed.description = """
+                    [**${stringLimit(current.title.replace("[", "［").replace("]", "［"))}**](${current.uri})
+                    
+                    
+                    :arrow_forward: [**${stringLimit(track.title.replace("[", "［").replace("]", "［"))}**](${track.uri})
+                """.trimIndent()
+            }
+            embed.color = Settings.COLOR_NORMAL
+            embed.usedUser(interaction)
+
+            interaction.respondPublic {
+                embeds.add(embed)
+                components.add(buttons)
             }
         }
     }

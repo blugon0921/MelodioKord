@@ -5,9 +5,8 @@ import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.kordLogger
 import dev.kord.core.on
-import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
-import dev.schlaubi.lavakord.audio.Link
+import dev.schlaubi.lavakord.audio.player.applyFilters
 import kr.blugon.melodio.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
@@ -16,20 +15,20 @@ import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.IntegerOption
-import kr.blugon.melodio.api.LinkAddon.repeatMode
+import kr.blugon.melodio.api.LinkAddon.varVolume
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.RepeatMode
+import kotlin.time.Duration.Companion.seconds
 
-class RepeatCmd: Command {
-    override val command = "repeat"
-    override val description = "대기열 혹은 노래를 반복합니다"
+class VolumeCmd: Command {
+    override val command = "volume"
+    override val description = "노래의 볼륨을 설정합니다"
     override val options = listOf(
-        IntegerOption("mode", "반복 모드를 선택해주세요") {
-            choice("현재 노래", 1)
-            choice("대기열", 2)
-            choice("해제", 3)
+        IntegerOption("volume", "조절할 볼륨을 입력해주세요(기본 50)") {
+            minValue = 0
+            maxValue = 100
+            required = true
         }
     )
 
@@ -64,36 +63,25 @@ class RepeatCmd: Command {
                 return@on
             }
 
-            val embed = EmbedBuilder()
-            val mode = interaction.command.integers["mode"]
-            when(mode) {
-                1L -> {
-                    link.repeatMode = RepeatMode.TRACK
-                    embed.title = "**:repeat_one: 현재 노래를 반복합니다**"
-                }
-                2L -> {
-                    link.repeatMode = RepeatMode.QUEUE
-                    embed.title = "**:repeat: 대기열을 반복합니다**"
-                }
-                3L -> {
-                    link.repeatMode = RepeatMode.OFF
-                    embed.title = "**:arrow_right_hook: 노래 반복을 해제했습니다**"
-                }
-                else -> {
-                    if(link.repeatMode == RepeatMode.OFF) {
-                        link.repeatMode = RepeatMode.TRACK
-                        embed.title = "**:repeat_one: 현재 노래를 반복합니다**"
-                    } else {
-                        link.repeatMode = RepeatMode.OFF
-                        embed.title = "**:arrow_right_hook: 노래 반복을 해제했습니다**"
-                    }
-                }
+            val volume = interaction.command.integers["volume"]!!.toInt()
+            var icon = ":loud_sound:"
+            if (volume <= 50) icon = ":sound:"
+            if (volume == 0) icon = ":mute:"
+
+            link.varVolume = volume
+            link.player.playTrack(current) {
+                this.volume = link.varVolume
+                this.position = link.player.positionDuration.plus(0.4.seconds)
+            }
+            player.applyFilters {
+                this.volume = volume.toFloat()/100
             }
 
             interaction.respondPublic {
-                embeds.add(embed.apply {
+                embed {
+                    title = "**${icon} 볼륨을 ${volume}%로 설정했어요**"
                     color = Settings.COLOR_NORMAL
-                })
+                }
                 components.add(buttons)
             }
         }

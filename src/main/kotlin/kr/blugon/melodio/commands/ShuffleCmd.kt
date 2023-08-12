@@ -5,24 +5,21 @@ import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.kordLogger
 import dev.kord.core.on
-import dev.kord.rest.builder.interaction.boolean
 import dev.kord.rest.builder.message.create.embed
 import dev.schlaubi.lavakord.audio.Link
 import kr.blugon.melodio.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules
 import kr.blugon.melodio.Modules.buttons
+import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.BooleanOption
+import kr.blugon.melodio.api.LinkAddon.isRepeatedShuffle
+import kr.blugon.melodio.api.LinkAddon.repeatMode
+import kr.blugon.melodio.api.LinkAddon.repeatedShuffleCount
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
-import kr.blugon.melodio.api.PlayerAddon.destroy
-import kr.blugon.melodio.api.PlayerAddon.isRepeatedShuffle
-import kr.blugon.melodio.api.PlayerAddon.repeatMode
-import kr.blugon.melodio.api.PlayerAddon.repeatedShuffleCount
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.api.RepeatMode
 
@@ -49,19 +46,11 @@ class ShuffleCmd: Command {
             }
 
             val link = kord.manager.getLink(interaction.guildId.value)
-            if(link.state != Link.State.CONNECTED && link.state != Link.State.CONNECTING) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "**봇이 음성 채널에 접속해 있지 않습니다**"
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@on
-            }
+            if(!link.isSameChannel(interaction, voiceChannel)) return@on
 
             val player = link.player
 
-            val current = player.queue.current
+            val current = link.queue.current
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
@@ -72,7 +61,7 @@ class ShuffleCmd: Command {
                 return@on
             }
 
-            if(player.queue.size < 2) {
+            if(link.queue.size < 2) {
                 interaction.respondEphemeral {
                     embed {
                         title = "**대기열에 노래가 2개 이상이어야 합니다**"
@@ -84,7 +73,7 @@ class ShuffleCmd: Command {
 
             val isRepeat = interaction.command.booleans["repeat"]
             if(isRepeat == null) {
-                player.queue.shuffle()
+                link.queue.shuffle()
                 interaction.respondPublic {
                     embed {
                         title = "**:twisted_rightwards_arrows: 대기열 순서를 섞었습니다**"
@@ -94,8 +83,8 @@ class ShuffleCmd: Command {
                 }
             } else {
                 if(!isRepeat) {
-                    player.isRepeatedShuffle = false
-                    player.repeatedShuffleCount = 0
+                    link.isRepeatedShuffle = false
+                    link.repeatedShuffleCount = 0
                     interaction.respondPublic {
                         embed {
                             title = "**:arrow_right: 대기열 순서 섞기 반복을 해제했습니다**"
@@ -105,7 +94,7 @@ class ShuffleCmd: Command {
                     }
                     return@on
                 }
-                if(player.repeatMode != RepeatMode.QUEUE) {
+                if(link.repeatMode != RepeatMode.QUEUE) {
                     interaction.respondEphemeral {
                         embed {
                             title = "**대기열을 반복 중이어야 합니다**"
@@ -114,9 +103,9 @@ class ShuffleCmd: Command {
                     }
                     return@on
                 }
-                player.queue.shuffle()
-                player.isRepeatedShuffle = true
-                player.repeatedShuffleCount = 0
+                link.queue.shuffle()
+                link.isRepeatedShuffle = true
+                link.repeatedShuffleCount = 0
                 interaction.respondPublic {
                     embed {
                         title = "**:twisted_rightwards_arrows: 대기열 순서 섞기를 반복합니다**"

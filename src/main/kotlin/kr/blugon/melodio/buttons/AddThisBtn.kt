@@ -1,6 +1,5 @@
 package kr.blugon.melodio.buttons
 
-import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
@@ -8,7 +7,7 @@ import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.embed
 import dev.kord.rest.builder.message.modify.embed
-import dev.schlaubi.lavakord.audio.*
+import dev.schlaubi.lavakord.audio.Link
 import dev.schlaubi.lavakord.kord.connectAudio
 import dev.schlaubi.lavakord.rest.loadItem
 import dev.schlaubi.lavakord.rest.models.TrackResponse
@@ -18,24 +17,15 @@ import kr.blugon.melodio.Modules
 import kr.blugon.melodio.Modules.addThisButtons
 import kr.blugon.melodio.Modules.getThumbnail
 import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.Modules.stringLimit
-import kr.blugon.melodio.Modules.timeFormat
 import kr.blugon.melodio.Modules.usedUser
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.api.LinkAddon.varVolume
+import kr.blugon.melodio.api.LinkAddon.voiceChannel
 import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.color
 import kr.blugon.melodio.api.LogColor.inColor
-import kr.blugon.melodio.api.PlayerAddon.destroy
-import kr.blugon.melodio.api.PlayerAddon.isEventAdded
-import kr.blugon.melodio.api.PlayerAddon.repeatMode
-import kr.blugon.melodio.api.PlayerAddon.varVolume
 import kr.blugon.melodio.api.Queue.Companion.addEvent
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.api.QueueItem
-import kr.blugon.melodio.api.RepeatMode
-import java.lang.IndexOutOfBoundsException
-import java.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 class AddThisBtn {
     val name = "addThisButton"
@@ -56,6 +46,18 @@ class AddThisBtn {
             }
 
             val link = kord.manager.getLink(interaction.guildId.value)
+            if(link.voiceChannel == null) link.voiceChannel = voiceChannel.channelId
+            if(link.state == Link.State.CONNECTED || link.state == Link.State.CONNECTING) { //이미 연결 되어 있으면
+                if(voiceChannel.channelId != link.voiceChannel) {
+                    interaction.respondEphemeral {
+                        embed {
+                            title = "**봇과 같은 음성 채널에 접속해있지 않습니다**"
+                            color = Settings.COLOR_ERROR
+                        }
+                    }
+                    return@on
+                }
+            }
 
             val player = link.player
             var url = interaction.message.embeds[0].description!!
@@ -83,18 +85,15 @@ class AddThisBtn {
 
             val item = link.loadItem(url)
 
-            if(!player.isEventAdded) {
-                player.addEvent(link)
-                player.isEventAdded = true
-            }
+            link.addEvent()
             if(item.loadType != TrackResponse.LoadType.NO_MATCHES && item.loadType != TrackResponse.LoadType.LOAD_FAILED) {
                 link.connectAudio(voiceChannel.channelId!!)
             }
             when(item.loadType) {
                 TrackResponse.LoadType.TRACK_LOADED -> {
                     val track = item.tracks.first()
-                    player.queue.add(track) {
-                        this.volume = player.varVolume
+                    link.queue.add(track) {
+                        this.volume = link.varVolume
                     }
                     response.respond {
                         embed {
@@ -121,8 +120,8 @@ class AddThisBtn {
                 }
                 TrackResponse.LoadType.PLAYLIST_LOADED -> {
                     val tracks = item.tracks
-                    player.queue.add(tracks[0]) {
-                        this.volume = player.varVolume
+                    link.queue.add(tracks[0]) {
+                        this.volume = link.varVolume
                     }
                     response.respond {
                         embed {
@@ -149,15 +148,15 @@ class AddThisBtn {
                         components = mutableListOf(addThisButtons)
                     }
                     for(i in 1 until tracks.size) {
-                        player.queue.add(QueueItem(tracks[i]) {
-                            this.volume = player.varVolume
+                        link.queue.add(QueueItem(tracks[i]) {
+                            this.volume = link.varVolume
                         })
                     }
                 }
                 TrackResponse.LoadType.SEARCH_RESULT -> {
                     val track = item.tracks.first()
-                    player.queue.add(track) {
-                        this.volume = player.varVolume
+                    link.queue.add(track) {
+                        this.volume = link.varVolume
                     }
                     response.respond {
                         embed {

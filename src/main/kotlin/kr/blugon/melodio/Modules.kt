@@ -3,11 +3,17 @@ package kr.blugon.melodio
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.common.entity.Snowflake
-import dev.kord.core.entity.interaction.GuildComponentInteraction
+import dev.kord.core.entity.VoiceState
+import dev.kord.core.behavior.interaction.respondEphemeral
+import dev.kord.core.entity.interaction.*
+import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.message.EmbedBuilder
+import dev.kord.rest.builder.message.create.embed
+import dev.schlaubi.lavakord.audio.Link
 import dev.schlaubi.lavakord.audio.player.Track
 import dev.schlaubi.lavakord.rest.models.PartialTrack
+import kr.blugon.melodio.api.LinkAddon.voiceChannel
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.color
 import mu.KLogger
@@ -132,5 +138,54 @@ object Modules {
             this.icon = if(interaction.user.avatar == null) interaction.user.defaultAvatar.cdnUrl.toUrl()
             else interaction.user.avatar!!.cdnUrl.toUrl()
         }
+    }
+
+    suspend fun Link.isSameChannel(interaction: GuildApplicationCommandInteraction, voiceChannel: VoiceState): Boolean {
+        val link = this
+        if(link.state != Link.State.CONNECTED && link.state != Link.State.CONNECTING) {
+            interaction.respondEphemeral {
+                embed {
+                    title = "**봇이 음성 채널에 접속해 있지 않습니다**"
+                    color = Settings.COLOR_ERROR
+                }
+            }
+            return false
+        } else {
+            if(link.voiceChannel == null) link.voiceChannel = voiceChannel.channelId
+            if(voiceChannel.channelId != link.voiceChannel) {
+                interaction.respondEphemeral {
+                    embed {
+                        title = "**봇과 같은 음성 채널에 접속해있지 않습니다**"
+                        color = Settings.COLOR_ERROR
+                    }
+                }
+                return false
+            }
+        }
+        return true
+    }
+    suspend fun Link.isSameChannel(interaction: GuildButtonInteraction, voiceChannel: VoiceState): Boolean {
+        val link = this
+        if(link.state != Link.State.CONNECTED && link.state != Link.State.CONNECTING) {
+            interaction.respondEphemeral {
+                embed {
+                    title = "**봇이 음성 채널에 접속해 있지 않습니다**"
+                    color = Settings.COLOR_ERROR
+                }
+            }
+            return false
+        } else {
+            if(link.voiceChannel == null) link.voiceChannel = voiceChannel.channelId
+            if(voiceChannel.channelId != link.voiceChannel) {
+                interaction.respondEphemeral {
+                    embed {
+                        title = "**봇과 같은 음성 채널에 접속해있지 않습니다**"
+                        color = Settings.COLOR_ERROR
+                    }
+                }
+                return false
+            }
+        }
+        return true
     }
 }

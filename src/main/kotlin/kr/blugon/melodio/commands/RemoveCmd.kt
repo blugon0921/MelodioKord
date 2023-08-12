@@ -8,28 +8,35 @@ import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
 import dev.schlaubi.lavakord.audio.Link
+import dev.schlaubi.lavakord.audio.player.Track
 import kr.blugon.melodio.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.log
+import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.IntegerOption
+import kr.blugon.melodio.api.LinkAddon.destroyPlayer
+import kr.blugon.melodio.api.LinkAddon.isRepeatedShuffle
 import kr.blugon.melodio.api.LinkAddon.repeatMode
+import kr.blugon.melodio.api.LinkAddon.repeatedShuffleCount
+import kr.blugon.melodio.api.LinkAddon.varVolume
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.api.Queue.Companion.skip
 import kr.blugon.melodio.api.RepeatMode
 
-class RepeatCmd: Command {
-    override val command = "repeat"
-    override val description = "대기열 혹은 노래를 반복합니다"
+class RemoveCmd: Command {
+    override val command = "remove"
+    override val description = "대기열에 있는 노래를 삭제합니다"
     override val options = listOf(
-        IntegerOption("mode", "반복 모드를 선택해주세요") {
-            choice("현재 노래", 1)
-            choice("대기열", 2)
-            choice("해제", 3)
+        IntegerOption("number", "삭제할 노래의 번호를 적어주세요") {
+            minValue = 1
+            maxValue = 2147483647
+            required = true
         }
     )
 
@@ -64,38 +71,36 @@ class RepeatCmd: Command {
                 return@on
             }
 
-            val embed = EmbedBuilder()
-            val mode = interaction.command.integers["mode"]
-            when(mode) {
-                1L -> {
-                    link.repeatMode = RepeatMode.TRACK
-                    embed.title = "**:repeat_one: 현재 노래를 반복합니다**"
-                }
-                2L -> {
-                    link.repeatMode = RepeatMode.QUEUE
-                    embed.title = "**:repeat: 대기열을 반복합니다**"
-                }
-                3L -> {
-                    link.repeatMode = RepeatMode.OFF
-                    embed.title = "**:arrow_right_hook: 노래 반복을 해제했습니다**"
-                }
-                else -> {
-                    if(link.repeatMode == RepeatMode.OFF) {
-                        link.repeatMode = RepeatMode.TRACK
-                        embed.title = "**:repeat_one: 현재 노래를 반복합니다**"
-                    } else {
-                        link.repeatMode = RepeatMode.OFF
-                        embed.title = "**:arrow_right_hook: 노래 반복을 해제했습니다**"
+            val number = interaction.command.integers["number"]!!.toInt()
+            if(link.queue.isEmpty()) {
+                interaction.respondEphemeral {
+                    embed {
+                        title = "**대기열이 비어있습니다**"
+                        color = Settings.COLOR_ERROR
                     }
                 }
+                return@on
+            }
+            if(link.queue.size < number) {
+                interaction.respondEphemeral {
+                    embed {
+                        title = "**${link.queue.size}이하의 숫자를 입력해주세요**"
+                        color = Settings.COLOR_ERROR
+                    }
+                }
+                return@on
             }
 
+            val rmTrack = link.queue[number-1]
             interaction.respondPublic {
-                embeds.add(embed.apply {
+                embed {
+                    title = "**<:minus:1104057498727632906> ${number}번 노래를 삭제했어요**"
                     color = Settings.COLOR_NORMAL
-                })
+                    description = "[**${stringLimit(rmTrack.track.title.replace("[", "［").replace("]", "［"))}**](${rmTrack.track.uri})"
+                }
                 components.add(buttons)
             }
+            link.queue.removeAt(number-1)
         }
     }
 }

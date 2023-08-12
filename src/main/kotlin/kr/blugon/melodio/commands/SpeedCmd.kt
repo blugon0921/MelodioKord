@@ -5,9 +5,9 @@ import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.kordLogger
 import dev.kord.core.on
-import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
-import dev.schlaubi.lavakord.audio.Link
+import dev.schlaubi.lavakord.audio.player.applyFilters
+import dev.schlaubi.lavakord.audio.player.timescale
 import kr.blugon.melodio.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
@@ -16,20 +16,23 @@ import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.IntegerOption
-import kr.blugon.melodio.api.LinkAddon.repeatMode
+import kr.blugon.melodio.api.LinkAddon.varVolume
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
+import kr.blugon.melodio.api.NumberOption
 import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.RepeatMode
+import kotlin.math.round
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
-class RepeatCmd: Command {
-    override val command = "repeat"
-    override val description = "대기열 혹은 노래를 반복합니다"
+class SpeedCmd: Command {
+    override val command = "speed"
+    override val description = "노래의 속도를 설정합니다"
     override val options = listOf(
-        IntegerOption("mode", "반복 모드를 선택해주세요") {
-            choice("현재 노래", 1)
-            choice("대기열", 2)
-            choice("해제", 3)
+        NumberOption("speed", "0.5부터 2사이의 숫자를 적어주세요") {
+            minValue = 0.5
+            maxValue = 2.0
+            required = true
         }
     )
 
@@ -64,36 +67,22 @@ class RepeatCmd: Command {
                 return@on
             }
 
-            val embed = EmbedBuilder()
-            val mode = interaction.command.integers["mode"]
-            when(mode) {
-                1L -> {
-                    link.repeatMode = RepeatMode.TRACK
-                    embed.title = "**:repeat_one: 현재 노래를 반복합니다**"
-                }
-                2L -> {
-                    link.repeatMode = RepeatMode.QUEUE
-                    embed.title = "**:repeat: 대기열을 반복합니다**"
-                }
-                3L -> {
-                    link.repeatMode = RepeatMode.OFF
-                    embed.title = "**:arrow_right_hook: 노래 반복을 해제했습니다**"
-                }
-                else -> {
-                    if(link.repeatMode == RepeatMode.OFF) {
-                        link.repeatMode = RepeatMode.TRACK
-                        embed.title = "**:repeat_one: 현재 노래를 반복합니다**"
-                    } else {
-                        link.repeatMode = RepeatMode.OFF
-                        embed.title = "**:arrow_right_hook: 노래 반복을 해제했습니다**"
-                    }
+            val speed = round(interaction.command.numbers["speed"]!!*100)/100
+            var icon = ":arrow_forward:"
+            if(1 < speed) icon = ":fast_forward:"
+            if(speed < 1) icon = ":rewind:"
+
+            player.applyFilters {
+                this.timescale {
+                    this.speed = speed.toFloat()
                 }
             }
 
             interaction.respondPublic {
-                embeds.add(embed.apply {
+                embed {
+                    title = "**${icon} 속도가 곧 ${speed}배로 설정됩니다**"
                     color = Settings.COLOR_NORMAL
-                })
+                }
                 components.add(buttons)
             }
         }
