@@ -6,8 +6,8 @@ import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEve
 import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.embed
-import dev.schlaubi.lavakord.audio.Link
-import kr.blugon.melodio.Command
+import dev.kord.rest.builder.message.embed
+import kr.blugon.melodio.api.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -23,14 +23,14 @@ import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.api.RepeatMode
 
-class ShuffleCmd: Command {
+class ShuffleCmd: Command, Runnable {
     override val command = "shuffle"
     override val description = "현재 대기열 순서를 섞습니다"
     override val options = listOf(
         BooleanOption("repeat", "대기열을 반복중일때 대기열을 모두 재생하면 자동으로 대기열을 섞습니다")
     )
 
-    suspend fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
         bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if(interaction.command.rootName != command) return@on
@@ -79,7 +79,7 @@ class ShuffleCmd: Command {
                         title = "**:twisted_rightwards_arrows: 대기열 순서를 섞었습니다**"
                         color = Settings.COLOR_NORMAL
                     }
-                    components.add(buttons)
+                    components = mutableListOf(buttons)
                 }
             } else {
                 if(!isRepeat) {
@@ -90,7 +90,7 @@ class ShuffleCmd: Command {
                             title = "**:arrow_right: 대기열 순서 섞기 반복을 해제했습니다**"
                             color = Settings.COLOR_NORMAL
                         }
-                        components.add(buttons)
+                        components = mutableListOf(buttons)
                     }
                     return@on
                 }
@@ -111,7 +111,7 @@ class ShuffleCmd: Command {
                         title = "**:twisted_rightwards_arrows: 대기열 순서 섞기를 반복합니다**"
                         color = Settings.COLOR_NORMAL
                     }
-                    components.add(buttons)
+                    components = mutableListOf(buttons)
                 }
             }
         }

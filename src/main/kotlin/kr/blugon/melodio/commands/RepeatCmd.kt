@@ -1,5 +1,8 @@
 package kr.blugon.melodio.commands
 
+import dev.kord.common.Locale
+import dev.kord.common.entity.Choice
+import dev.kord.common.entity.optional.Optional
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
@@ -7,8 +10,8 @@ import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
-import dev.schlaubi.lavakord.audio.Link
-import kr.blugon.melodio.Command
+import dev.kord.rest.builder.message.embed
+import kr.blugon.melodio.api.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -22,18 +25,18 @@ import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.api.RepeatMode
 
-class RepeatCmd: Command {
+class RepeatCmd: Command, Runnable {
     override val command = "repeat"
     override val description = "대기열 혹은 노래를 반복합니다"
     override val options = listOf(
-        IntegerOption("mode", "반복 모드를 선택해주세요") {
+        IntegerOption("mode", "반복 모드를 선택해주세요").apply {
             choice("현재 노래", 1)
             choice("대기열", 2)
             choice("해제", 3)
         }
     )
 
-    suspend fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
         bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if(interaction.command.rootName != command) return@on
@@ -91,10 +94,10 @@ class RepeatCmd: Command {
             }
 
             interaction.respondPublic {
-                embeds.add(embed.apply {
+                embeds = mutableListOf(embed.apply {
                     color = Settings.COLOR_NORMAL
                 })
-                components.add(buttons)
+                components = mutableListOf(buttons)
             }
         }
     }

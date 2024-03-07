@@ -4,6 +4,7 @@ import dev.kord.core.event.guild.GuildDeleteEvent
 import dev.kord.core.kordLogger
 import dev.kord.core.on
 import kotlinx.coroutines.flow.toList
+import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Modules.nowDate
@@ -11,10 +12,10 @@ import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.color
 import kr.blugon.melodio.api.LogColor.inColor
 
-class LeaveGuild {
+class LeaveGuild: Loadable, Runnable {
     val name = "leaveGuild"
 
-    suspend fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.BLUE.inColor(name)} 이벤트 불러오기 성공")
         bot.on<GuildDeleteEvent> {
             kordLogger.log("${LogColor.RED.inColor("✖")} ${guild?.name?.color(LogColor.BLUE)}서버에 추방당했어요")

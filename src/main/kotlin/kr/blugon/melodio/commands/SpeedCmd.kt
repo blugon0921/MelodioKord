@@ -5,38 +5,32 @@ import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.kordLogger
 import dev.kord.core.on
-import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.player.applyFilters
 import dev.schlaubi.lavakord.audio.player.timescale
-import kr.blugon.melodio.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.IntegerOption
-import kr.blugon.melodio.api.LinkAddon.varVolume
+import kr.blugon.melodio.api.Command
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.NumberOption
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kotlin.math.round
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
-class SpeedCmd: Command {
+class SpeedCmd: Command, Runnable {
     override val command = "speed"
     override val description = "노래의 속도를 설정합니다"
     override val options = listOf(
-        NumberOption("speed", "0.5부터 2사이의 숫자를 적어주세요") {
-            minValue = 0.5
-            maxValue = 2.0
+        NumberOption("speed", "0.5부터 2사이의 숫자를 적어주세요", 0.5, 2.0).apply {
             required = true
         }
     )
 
-    suspend fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
         bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if(interaction.command.rootName != command) return@on
@@ -74,7 +68,7 @@ class SpeedCmd: Command {
 
             player.applyFilters {
                 this.timescale {
-                    this.speed = speed.toFloat()
+                    this.speed = speed
                 }
             }
 
@@ -83,7 +77,7 @@ class SpeedCmd: Command {
                     title = "**${icon} 속도가 곧 ${speed}배로 설정됩니다**"
                     color = Settings.COLOR_NORMAL
                 }
-                components.add(buttons)
+                components = mutableListOf(buttons)
             }
         }
     }

@@ -6,8 +6,9 @@ import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEve
 import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.player.applyFilters
-import kr.blugon.melodio.Command
+import kr.blugon.melodio.api.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -21,18 +22,16 @@ import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kotlin.time.Duration.Companion.seconds
 
-class VolumeCmd: Command {
+class VolumeCmd: Command, Runnable {
     override val command = "volume"
     override val description = "노래의 볼륨을 설정합니다"
     override val options = listOf(
-        IntegerOption("volume", "조절할 볼륨을 입력해주세요(기본 50)") {
-            minValue = 0
-            maxValue = 100
+        IntegerOption("volume", "조절할 볼륨을 입력해주세요(기본 50)", 0, 100).apply {
             required = true
         }
     )
 
-    suspend fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
         bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if(interaction.command.rootName != command) return@on
@@ -82,7 +81,7 @@ class VolumeCmd: Command {
                     title = "**${icon} 볼륨을 ${volume}%로 설정했어요**"
                     color = Settings.COLOR_NORMAL
                 }
-                components.add(buttons)
+                components = mutableListOf(buttons)
             }
         }
     }

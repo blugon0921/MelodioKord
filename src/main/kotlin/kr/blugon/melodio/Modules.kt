@@ -1,18 +1,17 @@
 package kr.blugon.melodio
 
+import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.common.entity.Snowflake
-import dev.kord.core.entity.VoiceState
 import dev.kord.core.behavior.interaction.respondEphemeral
+import dev.kord.core.entity.VoiceState
 import dev.kord.core.entity.interaction.*
-import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
-import dev.schlaubi.lavakord.audio.player.Track
-import dev.schlaubi.lavakord.rest.models.PartialTrack
 import kr.blugon.melodio.api.LinkAddon.voiceChannel
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.color
@@ -89,9 +88,8 @@ object Modules {
         return (hour * 3600) + (minute * 60) + second
     }
 
-    suspend fun getThumbnail(track: PartialTrack): String = getThumbnail(track.toTrack())
     fun getThumbnail(track: Track): String {
-        return "https://img.youtube.com/vi/${track.identifier}/mqdefault.jpg"
+        return "https://img.youtube.com/vi/${track.info.identifier}/mqdefault.jpg"
     }
 
     val buttons = ActionRowBuilder().apply {

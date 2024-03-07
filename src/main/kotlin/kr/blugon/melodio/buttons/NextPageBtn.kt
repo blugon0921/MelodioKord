@@ -9,8 +9,9 @@ import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.embed
 import dev.kord.rest.builder.message.modify.embed
-import dev.schlaubi.lavakord.audio.Link
+import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -23,10 +24,10 @@ import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.commands.QueueCmd.Companion.queuePage
 
-class NextPageBtn {
+class NextPageBtn: Loadable, Runnable {
     val name = "nextPage"
 
-    fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on

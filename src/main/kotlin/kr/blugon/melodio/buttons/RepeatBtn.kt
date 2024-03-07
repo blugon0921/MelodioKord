@@ -7,7 +7,9 @@ import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
+import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -21,10 +23,10 @@ import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.api.RepeatMode
 
-class RepeatBtn {
+class RepeatBtn: Loadable, Runnable {
     val name = "repeatQueueButton"
 
-    fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
@@ -68,8 +70,8 @@ class RepeatBtn {
 
             embed.usedUser(interaction)
             interaction.respondPublic {
-                embeds.add(embed)
-                components.add(buttons)
+                embeds = mutableListOf(embed)
+                components = mutableListOf(buttons)
             }
         }
     }

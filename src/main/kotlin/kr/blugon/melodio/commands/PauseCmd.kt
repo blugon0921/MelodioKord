@@ -6,8 +6,8 @@ import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEve
 import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.embed
-import dev.schlaubi.lavakord.audio.Link
-import kr.blugon.melodio.Command
+import dev.kord.rest.builder.message.embed
+import kr.blugon.melodio.api.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -15,17 +15,16 @@ import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LinkAddon.voiceChannel
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
 
-class PauseCmd: Command {
+class PauseCmd: Command, Runnable {
     override val command = "pause"
     override val description = "노래를 일시정지합니다"
     override val options = null
 
-    suspend fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
         bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if(interaction.command.rootName != command) return@on
@@ -70,9 +69,9 @@ class PauseCmd: Command {
                     embed {
                         title = "**:pause_button: 노래를 일시정지 했습니다**"
                         color = Settings.COLOR_NORMAL
-                        description = "[**${stringLimit(current.title.replace("[", "［").replace("]", "［"))}**](${current.uri})"
+                        description = "[**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})"
                     }
-                    components.add(buttons)
+                    components = mutableListOf(buttons)
                 }
             }
         }

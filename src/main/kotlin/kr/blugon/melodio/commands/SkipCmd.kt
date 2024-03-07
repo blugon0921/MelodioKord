@@ -7,9 +7,8 @@ import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
-import dev.schlaubi.lavakord.audio.Link
-import dev.schlaubi.lavakord.audio.player.Track
-import kr.blugon.melodio.Command
+import dev.kord.rest.builder.message.embed
+import kr.blugon.melodio.api.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -29,17 +28,14 @@ import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.api.Queue.Companion.skip
 import kr.blugon.melodio.api.RepeatMode
 
-class SkipCmd: Command {
+class SkipCmd: Command, Runnable {
     override val command = "skip"
     override val description = "노래를 건너뜁니다"
     override val options = listOf(
-        IntegerOption("count", "건너뛸 개수를 입력해 주세요") {
-            minValue = 1
-            maxValue = 50
-        }
+        IntegerOption("count", "건너뛸 개수를 입력해 주세요", 1, 50)
     )
 
-    suspend fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
         bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if(interaction.command.rootName != command) return@on
@@ -75,7 +71,7 @@ class SkipCmd: Command {
                     embed {
                         title = "**:track_next: 노래 1개를 건너뛰었습니다**"
                         description = """
-                            [**${stringLimit(current.title.replace("[", "［").replace("]", "［"))}**](${current.uri})
+                            [**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})
                             
                             
                             **곡 없음**
@@ -100,7 +96,9 @@ class SkipCmd: Command {
                 link.queue.add(current) { volume = link.varVolume }
                 if(1 < count) {
                     for(i in 0 until count-1) {
-                        link.queue.add(link.queue[i]) { volume = link.varVolume }
+                        link.queue.add(link.queue[i].track) {
+                            link.queue[i].option(this)
+                        }
                     }
                 }
             }
@@ -119,19 +117,19 @@ class SkipCmd: Command {
             if(count <= link.queue.size) {
                 //스킵
                 embed.description = """
-                    [**${stringLimit(current.title.replace("[", "［").replace("]", "［"))}**](${current.uri})
+                    [**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})
                     
                     
-                    :arrow_forward: [**${stringLimit(link.queue[count-1].track.title.replace("[", "［").replace("]", "［"))}**](${link.queue[count-1].track.uri})
+                    :arrow_forward: [**${stringLimit(link.queue[count-1].track.info.title.replace("[", "［").replace("]", "［"))}**](${link.queue[count-1].track.info.uri})
                 """.trimIndent()
             } else {
                 //스킵하는 개수가 대기열보다 크면서 대기열을 반복중이면
                 if(link.repeatMode == RepeatMode.QUEUE) {
                     embed.description = """
-                        [**${stringLimit(current.title.replace("[", "［").replace("]", "［"))}**](${current.uri})
+                        [**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})
                         
                         
-                        :arrow_forward: [**${stringLimit(link.queue[count-1].track.title.replace("[", "［").replace("]", "［"))}**](${link.queue[count-1].track.uri})
+                        :arrow_forward: [**${stringLimit(link.queue[count-1].track.info.title.replace("[", "［").replace("]", "［"))}**](${link.queue[count-1].track.info.uri})
                     """.trimIndent()
                 }
             }
@@ -142,8 +140,8 @@ class SkipCmd: Command {
             link.skip(count)
 
             interaction.respondPublic {
-                embeds.add(embed)
-                components.add(buttons)
+                embeds = mutableListOf(embed)
+                components = mutableListOf(buttons)
             }
         }
     }

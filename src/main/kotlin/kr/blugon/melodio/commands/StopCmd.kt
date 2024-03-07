@@ -6,8 +6,8 @@ import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEve
 import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.create.embed
-import dev.schlaubi.lavakord.audio.Link
-import kr.blugon.melodio.Command
+import dev.kord.rest.builder.message.embed
+import kr.blugon.melodio.api.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.isSameChannel
@@ -18,12 +18,12 @@ import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
 
-class StopCmd: Command {
+class StopCmd: Command, Runnable {
     override val command = "stop"
     override val description = "노래를 정지하고 통화방에서 퇴장합니다"
     override val options = null
 
-    suspend fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
         bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if(interaction.command.rootName != command) return@on

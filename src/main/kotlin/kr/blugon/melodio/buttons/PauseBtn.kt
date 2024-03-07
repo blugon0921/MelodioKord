@@ -7,7 +7,9 @@ import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
+import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules
@@ -20,10 +22,10 @@ import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
 
-class PauseBtn {
+class PauseBtn: Loadable, Runnable {
     val name = "pauseButton"
 
-    fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
@@ -61,11 +63,11 @@ class PauseBtn {
             if(isPaused) embed.title = "**:arrow_forward: 노래 일시정지를 해제했습니다**"
             else embed.title = "**:pause_button: 노래를 일시정지 했습니다**"
             embed.color = Settings.COLOR_NORMAL
-            embed.description = "[**${Modules.stringLimit(current.title.replace("[", "［").replace("]", "［"))}**](${current.uri})"
+            embed.description = "[**${Modules.stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})"
             embed.usedUser(interaction)
             interaction.respondPublic {
-                embeds.add(embed)
-                components.add(buttons)
+                embeds = mutableListOf(embed)
+                components = mutableListOf(buttons)
             }
         }
     }

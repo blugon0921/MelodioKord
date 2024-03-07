@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.0"
+    kotlin("jvm") version "1.9.22"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
@@ -11,6 +11,7 @@ java {
 
 val buildPath = File("C:/Users/blugo/Desktop")
 val kotlinVersion = kotlin.coreLibrariesVersion
+val mainClass = "${project.group}.${project.name.lowercase()}.MainKt" //Main File
 
 repositories {
     mavenCentral()
@@ -21,12 +22,9 @@ dependencies {
     compileOnly(kotlin("stdlib"))
     compileOnly(kotlin("reflect"))
     implementation("dev.kord:kord-core:latest.release")
-//    implementation("dev.schlaubi.lavakord:kord:latest.release")
-    implementation("dev.schlaubi.lavakord:kord:4.1.0")
+    implementation("dev.schlaubi.lavakord:kord:latest.release")
     implementation("org.slf4j:slf4j-simple:latest.release")
-    implementation("org.reflections:reflections:0.9.9-RC1")
-    implementation("io.github.classgraph:classgraph:latest.release")
-    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+//    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 }
 
 tasks {
@@ -50,7 +48,7 @@ tasks {
         }
 
         manifest {
-            attributes["Main-Class"] = "${project.group}.${project.name.toLowerCase()}.MainKt" //Main File
+            attributes["Main-Class"] = mainClass
         }
     }
 
@@ -70,7 +68,7 @@ tasks {
         }
 
         manifest {
-            attributes["Main-Class"] = "${project.group}.${project.name.toLowerCase()}.MainKt" //Main File
+            attributes["Main-Class"] = mainClass
         }
     }
 }

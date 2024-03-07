@@ -1,5 +1,6 @@
 package kr.blugon.melodio.commands
 
+import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
@@ -7,11 +8,8 @@ import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEve
 import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
-import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
-import dev.schlaubi.lavakord.audio.player.Player
-import dev.schlaubi.lavakord.audio.player.Track
-import kr.blugon.melodio.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -20,19 +18,18 @@ import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Modules.timeFormat
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LinkAddon.voiceChannel
+import kr.blugon.melodio.api.Command
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
-import java.lang.IndexOutOfBoundsException
 import kotlin.math.ceil
 
-class QueueCmd: Command {
+class QueueCmd: Command, Runnable {
     override val command = "queue"
     override val description = "현재 대기열을 보여줍니다"
     override val options = null
 
-    suspend fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
         bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if(interaction.command.rootName != command) return@on
@@ -68,9 +65,9 @@ class QueueCmd: Command {
                     embed {
                         title = "**:clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]**"
                         color = Settings.COLOR_NORMAL
-                        description = "**💿 [${stringLimit(current.title).replace("[", "［").replace("]", "［")}](${current.uri})\n**"
+                        description = "**💿 [${stringLimit(current.info.title).replace("[", "［").replace("]", "［")}](${current.info.uri})\n**"
                     }
-                    components.add(buttons)
+                    components = mutableListOf(buttons)
                 }
                 return@on
             }
@@ -86,7 +83,7 @@ class QueueCmd: Command {
                         text = "페이지 1/${pages.size}"
                     }
                 }
-                components.add(ActionRowBuilder().apply {
+                components = mutableListOf(ActionRowBuilder().apply {
                     this.interactionButton(ButtonStyle.Primary, "beforePage") {
                         this.label = "◀이전"
                         this.disabled = true
@@ -99,7 +96,7 @@ class QueueCmd: Command {
                         this.label = "🔄️새로고침"
                     }
                 })
-                components.add(buttons)
+                components = mutableListOf(buttons)
             }
         }
     }
@@ -113,14 +110,14 @@ class QueueCmd: Command {
                 var count = 0
                 for(p in 0 until  ceil(link.queue.size/(maxLength-1.0)).toInt()) {
                     var pageDescription = ""
-                    pageDescription += "**💿 [${stringLimit(current.title).replace("[", "［").replace("]", "］")}](${current.uri})**\n\n"
+                    pageDescription += "**💿 [${stringLimit(current.info.title).replace("[", "［").replace("]", "］")}](${current.info.uri})**\n\n"
                     pageDescription += "**"
                     val beforeCount = count
                     inner@for(i in beforeCount until maxLength+beforeCount) {
                         try {
-                            var title = stringLimit(link.queue[i].track.title)
+                            var title = stringLimit(link.queue[i].track.info.title)
                             title = title.replace("[", "［").replace("]", "］")
-                            pageDescription += "${i+1}.ﾠ[${title}](${link.queue[i].track.uri})\n"
+                            pageDescription += "${i+1}.ﾠ[${title}](${link.queue[i].track.info.uri})\n"
                             count++
                         } catch (_: IndexOutOfBoundsException) { break@inner }
                     }
@@ -133,11 +130,11 @@ class QueueCmd: Command {
                 }
             } else { //1페이지
                 var description = ""
-                description += "**💿 [${stringLimit(current.title).replace("[", "［").replace("]", "］")}](${current.uri})**\n\n**"
+                description += "**💿 [${stringLimit(current.info.title).replace("[", "［").replace("]", "］")}](${current.info.uri})**\n\n**"
                 for(i in 0 until link.queue.size) {
-                    var title = stringLimit(link.queue[i].track.title)
+                    var title = stringLimit(link.queue[i].track.info.title)
                     title = title.replace("[", "［").replace("]", "］")
-                    description += "${i+1}.ﾠ[${title}](${link.queue[i].track.uri})\n"
+                    description += "${i+1}.ﾠ[${title}](${link.queue[i].track.info.uri})\n"
                 }
                 description += "**"
                 page.add(description)

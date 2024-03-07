@@ -7,7 +7,9 @@ import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
+import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
+import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules
@@ -23,10 +25,10 @@ import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.api.Queue.Companion.skip
 
-class SkipBtn {
+class SkipBtn: Loadable, Runnable {
     val name = "skipButton"
 
-    fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
@@ -61,25 +63,25 @@ class SkipBtn {
             val embed = EmbedBuilder()
             embed.title = "**:track_next: 노래 1개를 건너뛰었습니다**"
             embed.description = """
-                [**${stringLimit(current.title.replace("[", "［").replace("]", "［"))}**](${current.uri})
+                [**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})
                 
                 
                 **곡 없음**
             """.trimIndent()
             if(track != null) {
                 embed.description = """
-                    [**${stringLimit(current.title.replace("[", "［").replace("]", "［"))}**](${current.uri})
+                    [**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})
                     
                     
-                    :arrow_forward: [**${stringLimit(track.title.replace("[", "［").replace("]", "［"))}**](${track.uri})
+                    :arrow_forward: [**${stringLimit(track.info.title.replace("[", "［").replace("]", "［"))}**](${track.info.uri})
                 """.trimIndent()
             }
             embed.color = Settings.COLOR_NORMAL
             embed.usedUser(interaction)
 
             interaction.respondPublic {
-                embeds.add(embed)
-                components.add(buttons)
+                embeds = mutableListOf(embed)
+                components = mutableListOf(buttons)
             }
         }
     }

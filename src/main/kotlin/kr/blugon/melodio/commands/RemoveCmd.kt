@@ -5,11 +5,9 @@ import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.kordLogger
 import dev.kord.core.on
-import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.create.embed
-import dev.schlaubi.lavakord.audio.Link
-import dev.schlaubi.lavakord.audio.player.Track
-import kr.blugon.melodio.Command
+import dev.kord.rest.builder.message.embed
+import kr.blugon.melodio.api.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -18,29 +16,20 @@ import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.IntegerOption
-import kr.blugon.melodio.api.LinkAddon.destroyPlayer
-import kr.blugon.melodio.api.LinkAddon.isRepeatedShuffle
-import kr.blugon.melodio.api.LinkAddon.repeatMode
-import kr.blugon.melodio.api.LinkAddon.repeatedShuffleCount
-import kr.blugon.melodio.api.LinkAddon.varVolume
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.Queue.Companion.skip
-import kr.blugon.melodio.api.RepeatMode
 
-class RemoveCmd: Command {
+class RemoveCmd: Command, Runnable {
     override val command = "remove"
     override val description = "대기열에 있는 노래를 삭제합니다"
     override val options = listOf(
-        IntegerOption("number", "삭제할 노래의 번호를 적어주세요") {
-            minValue = 1
-            maxValue = 2147483647
+        IntegerOption("number", "삭제할 노래의 번호를 적어주세요", 1, Int.MAX_VALUE.toLong()).apply {
             required = true
         }
     )
 
-    suspend fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
         bot.on<GuildChatInputCommandInteractionCreateEvent> {
             if(interaction.command.rootName != command) return@on
@@ -96,9 +85,9 @@ class RemoveCmd: Command {
                 embed {
                     title = "**<:minus:1104057498727632906> ${number}번 노래를 삭제했어요**"
                     color = Settings.COLOR_NORMAL
-                    description = "[**${stringLimit(rmTrack.track.title.replace("[", "［").replace("]", "［"))}**](${rmTrack.track.uri})"
+                    description = "[**${stringLimit(rmTrack.track.info.title.replace("[", "［").replace("]", "［"))}**](${rmTrack.track.info.uri})"
                 }
-                components.add(buttons)
+                components = mutableListOf(buttons)
             }
             link.queue.removeAt(number-1)
         }

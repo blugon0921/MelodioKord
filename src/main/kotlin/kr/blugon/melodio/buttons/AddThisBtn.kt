@@ -1,36 +1,34 @@
 package kr.blugon.melodio.buttons
 
+import dev.arbjerg.lavalink.protocol.v4.LoadResult
+import dev.arbjerg.lavalink.protocol.v4.ResultStatus
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
 import dev.kord.core.kordLogger
 import dev.kord.core.on
-import dev.kord.rest.builder.message.create.embed
-import dev.kord.rest.builder.message.modify.embed
+import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
 import dev.schlaubi.lavakord.kord.connectAudio
 import dev.schlaubi.lavakord.rest.loadItem
-import dev.schlaubi.lavakord.rest.models.TrackResponse
+import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules
 import kr.blugon.melodio.Modules.addThisButtons
 import kr.blugon.melodio.Modules.getThumbnail
 import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.Modules.usedUser
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.LinkAddon.varVolume
 import kr.blugon.melodio.api.LinkAddon.voiceChannel
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.inColor
-import kr.blugon.melodio.api.Queue.Companion.addEvent
 import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.QueueItem
 
-class AddThisBtn {
+class AddThisBtn: Loadable, Runnable {
     val name = "addThisButton"
 
-    fun execute() {
+    override fun run() {
         kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
@@ -84,17 +82,18 @@ class AddThisBtn {
             val response = interaction.deferPublicResponse()
 
             val item = link.loadItem(url)
-
-            link.addEvent()
-            if(item.loadType != TrackResponse.LoadType.NO_MATCHES && item.loadType != TrackResponse.LoadType.LOAD_FAILED) {
+            if(item.loadType != ResultStatus.NONE && item.loadType != ResultStatus.ERROR) {
                 link.connectAudio(voiceChannel.channelId!!)
             }
-            when(item.loadType) {
-                TrackResponse.LoadType.TRACK_LOADED -> {
-                    val track = item.tracks.first()
+
+
+            when(item) {
+                is LoadResult.TrackLoaded -> {
+                    val track = item.data
                     link.queue.add(track) {
                         this.volume = link.varVolume
                     }
+
                     response.respond {
                         embed {
                             title = "**:musical_note: 대기열에 노래를 추가하였습니다**"
@@ -113,29 +112,29 @@ class AddThisBtn {
                                 value = "**`${duration}`**"
                                 inline = true
                             }
-                            this.usedUser(interaction)
                         }
                         components = mutableListOf(addThisButtons)
                     }
                 }
-                TrackResponse.LoadType.PLAYLIST_LOADED -> {
-                    val tracks = item.tracks
-                    link.queue.add(tracks[0]) {
+                is LoadResult.PlaylistLoaded -> {
+                    val playlist = item.data
+                    link.queue.add(playlist.tracks) {
                         this.volume = link.varVolume
                     }
+
                     response.respond {
                         embed {
                             title = "**:musical_note: 대기열에 재생목록을 추가하였습니다**"
-                            description = "[**${item.getPlaylistInfo().name.replace("[", "［").replace("]", "］")}**](${url})"
-                            image = getThumbnail(tracks[0])
+                            description = "[**${playlist.info.name.replace("[", "［").replace("]", "］")}**](${url})"
+                            image = getThumbnail(playlist.tracks[0])
                             color = Settings.COLOR_NORMAL
                             field {
                                 name = "**영상 개수**"
-                                value = "**`${tracks.size}`**"
+                                value = "**`${playlist.tracks.size}`**"
                                 inline = true
                             }
                             var duration = 0L
-                            tracks.forEach { track ->
+                            playlist.tracks.forEach { track ->
                                 duration+=track.info.length
                             }
                             field {
@@ -143,21 +142,16 @@ class AddThisBtn {
                                 value = "**`${Modules.timeFormat(duration)}`**"
                                 inline = true
                             }
-                            this.usedUser(interaction)
                         }
                         components = mutableListOf(addThisButtons)
                     }
-                    for(i in 1 until tracks.size) {
-                        link.queue.add(QueueItem(tracks[i]) {
-                            this.volume = link.varVolume
-                        })
-                    }
                 }
-                TrackResponse.LoadType.SEARCH_RESULT -> {
-                    val track = item.tracks.first()
+                is LoadResult.SearchResult -> {
+                    val track = item.data.tracks[0]
                     link.queue.add(track) {
                         this.volume = link.varVolume
                     }
+
                     response.respond {
                         embed {
                             title = "**:musical_note: 대기열에 노래를 추가하였습니다**"
@@ -169,36 +163,33 @@ class AddThisBtn {
                                 value = "**`${track.info.author}`**"
                                 inline = true
                             }
-                            var duration = "${track.info.length}"
+                            var duration = Modules.timeFormat(track.info.length)
                             if(track.info.isStream) duration = "LIVE"
                             field {
                                 name = "**길이**"
                                 value = "**`${duration}`**"
                                 inline = true
                             }
-                            this.usedUser(interaction)
                         }
                         components = mutableListOf(addThisButtons)
                     }
                 }
-                TrackResponse.LoadType.NO_MATCHES -> {
-                    if(player.playingTrack == null) link.destroy()
+                is LoadResult.NoMatches -> {
+                    if(link.queue.current == null) link.destroy()
                     response.respond {
                         embed {
                             title = "**영상을 찾을 수 없습니다**"
                             color = Settings.COLOR_ERROR
-                            this.usedUser(interaction)
                         }
                     }
                     return@on
                 }
-                TrackResponse.LoadType.LOAD_FAILED -> {
-                    if(player.playingTrack == null) link.destroy()
+                is LoadResult.LoadFailed -> {
+                    if(link.queue.current == null) link.destroy()
                     response.respond {
                         embed {
                             title = "**영상을 검색하는중 오류가 발생했습니다**"
                             color = Settings.COLOR_ERROR
-                            this.usedUser(interaction)
                         }
                     }
                     return@on
