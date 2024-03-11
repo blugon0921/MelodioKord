@@ -2,12 +2,9 @@ package kr.blugon.melodio.commands
 
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
-import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 import dev.kord.core.kordLogger
-import dev.kord.core.on
-import dev.kord.rest.builder.message.create.embed
 import dev.kord.rest.builder.message.embed
-import kr.blugon.melodio.api.Command
+import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -16,18 +13,18 @@ import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.inColor
+import kr.blugon.melodio.api.OnCommand
 import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.api.logger
 
-class PauseCmd: Command, Runnable {
+class PauseCmd: Command, OnCommand {
     override val command = "pause"
     override val description = "노래를 일시정지합니다"
     override val options = null
 
-    override fun run() {
-        kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
-        bot.on<GuildChatInputCommandInteractionCreateEvent> {
-            if(interaction.command.rootName != command) return@on
+    override fun on() {
+        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
+        onRun(bot) {
             val voiceChannel = interaction.user.getVoiceStateOrNull()
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
@@ -36,11 +33,11 @@ class PauseCmd: Command, Runnable {
                         color = Settings.COLOR_ERROR
                     }
                 }
-                return@on
+                return@onRun
             }
 
             val link = kord.manager.getLink(interaction.guildId.value)
-            if(!link.isSameChannel(interaction, voiceChannel)) return@on
+            if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
 
             val player = link.player
 
@@ -53,7 +50,7 @@ class PauseCmd: Command, Runnable {
                         color = Settings.COLOR_ERROR
                     }
                 }
-                return@on
+                return@onRun
             }
 
             if(player.paused) {

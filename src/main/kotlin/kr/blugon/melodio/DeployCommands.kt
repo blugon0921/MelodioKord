@@ -1,15 +1,18 @@
 package kr.blugon.melodio
 
+import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
 import dev.kord.core.kordLogger
+import kr.blugon.kordmand.Command
+import kr.blugon.kordmand.Command.Companion.registerGlobalCommand
+import kr.blugon.kordmand.Command.Companion.registerGuildCommand
 import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.api.Command
 import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.inColor
+import kr.blugon.melodio.api.logger
 
 suspend fun main(args: Array<String>) {
-    val bot = Kord(Settings.TOKEN)
-//    val bot = Kord(Settings.TEST_TOKEN)
+    val bot = if (args[0] == "test") Kord(Settings.TEST_TOKEN)
+               else Kord(Settings.TOKEN)
 
     val rootPackage = Main.javaClass.`package`
 
@@ -23,7 +26,11 @@ suspend fun main(args: Array<String>) {
         }
     }
     for(command in commands) {
-        command.deploy(bot)
-        kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command.command)} 커맨드 등록 완료")
+        bot.registerGuildCommand(command, Snowflake(
+            if(args[0] == "test") Settings.TEST_GUILD_ID
+            else Settings.GUILD_ID
+        ))
+        bot.registerGlobalCommand(command)
+        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command.command)} 커맨드 등록 완료")
     }
 }

@@ -4,24 +4,23 @@ import dev.kord.core.event.gateway.ReadyEvent
 import dev.kord.core.kordLogger
 import dev.kord.core.on
 import kotlinx.coroutines.flow.toList
-import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.isReady
 import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.color
-import kr.blugon.melodio.api.LogColor.inColor
+import kr.blugon.melodio.api.LogColor.Companion.color
+import kr.blugon.melodio.api.logger
 
-class ClientReady: Loadable, Runnable {
+class ClientReady {
     val name = "clientReady"
 
-    override fun run() {
-        kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.BLUE.inColor(name)} 이벤트 불러오기 성공")
+    init {
+        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.BLUE.inColor(name)} 이벤트 불러오기 성공")
         bot.on<ReadyEvent> {
-            kordLogger.log("")
-            kordLogger.log("접속 서버(${bot.guilds.toList().size})".color(LogColor.CYAN))
+            logger.log("")
+            logger.log("접속 서버(${bot.guilds.toList().size})".color(LogColor.CYAN))
             for(guild in bot.guilds.toList()) {
-                kordLogger.log(guild.name.color(LogColor.BLUE))
+                logger.log(guild.name.color(LogColor.BLUE))
             }
             bot.isReady = true
         }

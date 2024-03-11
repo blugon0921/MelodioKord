@@ -2,25 +2,21 @@ package kr.blugon.melodio.commands
 
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
-import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
-import dev.kord.core.kordLogger
-import dev.kord.core.on
-import dev.kord.rest.builder.message.create.embed
 import dev.kord.rest.builder.message.embed
-import kr.blugon.melodio.api.Command
+import kr.blugon.kordmand.Command
+import kr.blugon.kordmand.IntegerOption
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.IntegerOption
 import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.inColor
+import kr.blugon.melodio.api.OnCommand
 import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.api.logger
 
-class RemoveCmd: Command, Runnable {
+class RemoveCmd: Command, OnCommand {
     override val command = "remove"
     override val description = "대기열에 있는 노래를 삭제합니다"
     override val options = listOf(
@@ -29,10 +25,10 @@ class RemoveCmd: Command, Runnable {
         }
     )
 
-    override fun run() {
-        kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
-        bot.on<GuildChatInputCommandInteractionCreateEvent> {
-            if(interaction.command.rootName != command) return@on
+    override fun on() {
+        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
+        onRun(bot) {
+            if(interaction.command.rootName != command) return@onRun
             val voiceChannel = interaction.user.getVoiceStateOrNull()
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
@@ -41,11 +37,11 @@ class RemoveCmd: Command, Runnable {
                         color = Settings.COLOR_ERROR
                     }
                 }
-                return@on
+                return@onRun
             }
 
             val link = kord.manager.getLink(interaction.guildId.value)
-            if(!link.isSameChannel(interaction, voiceChannel)) return@on
+            if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
 
             val player = link.player
 
@@ -57,7 +53,7 @@ class RemoveCmd: Command, Runnable {
                         color = Settings.COLOR_ERROR
                     }
                 }
-                return@on
+                return@onRun
             }
 
             val number = interaction.command.integers["number"]!!.toInt()
@@ -68,7 +64,7 @@ class RemoveCmd: Command, Runnable {
                         color = Settings.COLOR_ERROR
                     }
                 }
-                return@on
+                return@onRun
             }
             if(link.queue.size < number) {
                 interaction.respondEphemeral {
@@ -77,7 +73,7 @@ class RemoveCmd: Command, Runnable {
                         color = Settings.COLOR_ERROR
                     }
                 }
-                return@on
+                return@onRun
             }
 
             val rmTrack = link.queue[number-1]

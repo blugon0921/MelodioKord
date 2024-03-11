@@ -1,11 +1,11 @@
 plugins {
-    kotlin("jvm") version "1.9.22"
+    kotlin("jvm") version "1.9.23"
     id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 java {
     toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
+        languageVersion.set(JavaLanguageVersion.of(21))
     }
 }
 
@@ -16,6 +16,7 @@ val mainClass = "${project.group}.${project.name.lowercase()}.MainKt" //Main Fil
 repositories {
     mavenCentral()
     maven("https://oss.sonatype.org/content/repositories/snapshots")
+    maven("https://repo.blugon.kr/repository/maven-public/")
 }
 
 dependencies {
@@ -24,12 +25,15 @@ dependencies {
     implementation("dev.kord:kord-core:latest.release")
     implementation("dev.schlaubi.lavakord:kord:latest.release")
     implementation("org.slf4j:slf4j-simple:latest.release")
+//    implementation("kr.blugon:kordmand:latest.release")
+    implementation("kr.blugon:kordmand:0.0.3")
+    implementation("com.googlecode.json-simple:json-simple:1.1.1")
 //    implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
 }
 
 tasks {
     compileKotlin {
-        kotlinOptions.jvmTarget = JavaVersion.VERSION_17.toString()
+        kotlinOptions.jvmTarget = JavaVersion.VERSION_21.toString()
     }
 
     jar {

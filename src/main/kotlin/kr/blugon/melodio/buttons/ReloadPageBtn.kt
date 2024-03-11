@@ -3,40 +3,27 @@ package kr.blugon.melodio.buttons
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.interaction.respondEphemeral
-import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
-import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.component.ButtonBuilder
-import dev.kord.rest.builder.message.EmbedBuilder
-import dev.kord.rest.builder.message.create.embed
 import dev.kord.rest.builder.message.embed
-import dev.kord.rest.builder.message.modify.embed
-import dev.schlaubi.lavakord.audio.Link
-import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Modules.timeFormat
-import kr.blugon.melodio.Modules.usedUser
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LinkAddon.destroyPlayer
 import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.Queue.Companion.skip
+import kr.blugon.melodio.api.logger
 import kr.blugon.melodio.commands.QueueCmd.Companion.queuePage
 
-class ReloadPageBtn: Loadable, Runnable {
+class ReloadPageBtn {
     val name = "reloadPage"
 
-    override fun run() {
-        kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
+    init {
+        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
             val voiceChannel = interaction.user.getVoiceStateOrNull()

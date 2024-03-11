@@ -9,7 +9,6 @@ import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.embed
-import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
@@ -18,15 +17,15 @@ import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Modules.timeFormat
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.api.logger
 import kr.blugon.melodio.commands.QueueCmd.Companion.queuePage
 
-class BeforePageBtn: Loadable, Runnable {
+class BeforePageBtn {
     val name = "beforePage"
 
-    override fun run() {
-        kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
+    init {
+        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
             val voiceChannel = interaction.user.getVoiceStateOrNull()

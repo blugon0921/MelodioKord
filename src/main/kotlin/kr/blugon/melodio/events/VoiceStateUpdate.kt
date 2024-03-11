@@ -7,17 +7,16 @@ import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.schlaubi.lavakord.audio.Link
 import kotlinx.coroutines.delay
-import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.api.LinkAddon.destroyPlayer
 import kr.blugon.melodio.api.LinkAddon.voiceChannel
 import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.inColor
 import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.api.logger
 
-class VoiceStateUpdate: Loadable, Runnable {
+class VoiceStateUpdate {
     val name = "voiceStateUpdate"
 
     companion object {
@@ -32,8 +31,8 @@ class VoiceStateUpdate: Loadable, Runnable {
             }
     }
 
-    override fun run() {
-        kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.BLUE.inColor(name)} 이벤트 불러오기 성공")
+    init {
+        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.BLUE.inColor(name)} 이벤트 불러오기 성공")
         bot.on<VoiceStateUpdateEvent> {
             val guild = state.getGuild()
             val link = bot.manager.getLink(state.guildId.value)

@@ -5,15 +5,15 @@ import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.common.entity.Snowflake
 import dev.schlaubi.lavakord.audio.*
 import dev.schlaubi.lavakord.audio.player.PlayOptions
-import kotlinx.coroutines.delay
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.api.LinkAddon.destroyPlayer
 import kr.blugon.melodio.api.LinkAddon.isEventAdded
 import kr.blugon.melodio.api.LinkAddon.isRepeatedShuffle
+import kr.blugon.melodio.api.LinkAddon.isVolumePlay
 import kr.blugon.melodio.api.LinkAddon.repeatMode
 import kr.blugon.melodio.api.LinkAddon.repeatedShuffleCount
 import kr.blugon.melodio.api.LinkAddon.setGuild
-import kr.blugon.melodio.api.LinkAddon.varVolume
+import kr.blugon.melodio.api.LinkAddon.volume
 import kotlin.time.Duration
 
 class Queue(val link: Link): ArrayList<QueueItem>() {
@@ -49,6 +49,7 @@ class Queue(val link: Link): ArrayList<QueueItem>() {
 
             player.on<Event, TrackEndEvent> { //END Event
                 val track = this.track
+                if(link.isVolumePlay) return@on
                 link.queue.current = null
                 if(this.reason != Message.EmittedEvent.TrackEndEvent.AudioTrackEndReason.FINISHED) return@on
                 try {
@@ -59,23 +60,23 @@ class Queue(val link: Link): ArrayList<QueueItem>() {
                                 return@on
                             }
                             link.player.playTrack(link.queue.first().track) {
-                                this.volume = link.varVolume
+                                this.volume = link.volume
                             }
                             if (link.queue.isNotEmpty()) link.queue.removeAt(0)
                         }
                         RepeatMode.TRACK -> { //한곡 반복일때 끝난 곡 다시 재생
                             player.playTrack(track) {
-                                this.volume = link.varVolume
+                                this.volume = link.volume
                                 end = Duration.parse("${track.info.length}ms")
                             }
                         }
                         RepeatMode.QUEUE -> { //대기열 반복일때 다음곡 재생 후 끝난 곡 대기열에 추가
                             link.queue.add(QueueItem(track) {
-                                this.volume = link.varVolume
+                                this.volume = link.volume
                                 end = Duration.parse("${track.info.length}ms")
                             })
                             player.playTrack(link.queue[0].track) {
-                                this.volume = link.varVolume
+                                this.volume = link.volume
                                 end = Duration.parse("${link.queue[0].track.info.length}ms")
                             }
                             if (link.queue.isNotEmpty()) link.queue.removeAt(0)
@@ -88,7 +89,10 @@ class Queue(val link: Link): ArrayList<QueueItem>() {
             }
             player.on<Event, TrackStartEvent> { //StartEvent
                 val guild = bot.getGuild(Snowflake(this.guildId))
-                delay(100)
+                if(link.isVolumePlay) {
+                    link.isVolumePlay = false
+                    return@on
+                }
                 link.queue.current = track
                 if(link.isRepeatedShuffle) {
                     if(link.repeatMode != RepeatMode.QUEUE) {
@@ -123,20 +127,20 @@ class Queue(val link: Link): ArrayList<QueueItem>() {
                 }
                 track = link.queue[0].track
                 link.player.playTrack(link.queue[0].track) {
-                    this.volume = link.varVolume
+                    this.volume = link.volume
                 }
                 link.queue.removeAt(0)
             }
             while(link.queue.current == null) {
                 link.player.playTrack(track) {
-                    this.volume = link.varVolume
+                    this.volume = link.volume
                 }
             }
             return track
         }
     }
 
-    suspend fun add(track: Track, index: Int = size-1, playOptions: PlayOptions.() -> Unit = {}): Boolean { //return isFirstTrack
+    suspend fun add(track: Track, index: Int = size, playOptions: PlayOptions.() -> Unit = {}): Boolean { //return isFirstTrack
         if(playerQueue[Snowflake(link.guildId)] == null) playerQueue[Snowflake(link.guildId)] = this
         return if(link.player.playingTrack == null) {
             link.player.playTrack(track, playOptions)
@@ -147,7 +151,7 @@ class Queue(val link: Link): ArrayList<QueueItem>() {
         }
     }
 
-    suspend fun add(tracks: List<Track>, index: Int = size-1, playOptions: PlayOptions.() -> Unit = {}) {
+    suspend fun add(tracks: List<Track>, index: Int = size, playOptions: PlayOptions.() -> Unit = {}) {
         if(playerQueue[Snowflake(link.guildId)] == null) playerQueue[Snowflake(link.guildId)] = this
         repeat(tracks.size) {
             val track = tracks[it]

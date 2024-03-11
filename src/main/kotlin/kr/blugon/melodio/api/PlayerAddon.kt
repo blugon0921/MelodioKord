@@ -12,13 +12,22 @@ import kr.blugon.melodio.events.VoiceStateUpdate.Companion.playerDestroyThread
 
 object LinkAddon {
     val linkVolume = HashMap<Link, Int>()
-    var Link.varVolume: Int
+    var Link.volume: Int
         get() {
             if(linkVolume[this] == null) linkVolume[this] = 50
             return linkVolume[this]!!
         }
         set(value) {
             linkVolume[this] = value
+        }
+    val linkIsVolumePlay = HashMap<Link, Boolean>()
+    var Link.isVolumePlay: Boolean
+        get() {
+            if(linkIsVolumePlay[this] == null) linkIsVolumePlay[this] = false
+            return linkIsVolumePlay[this]!!
+        }
+        set(value) {
+            linkIsVolumePlay[this] = value
         }
 
     val eventAdded = HashMap<Snowflake, Boolean>()

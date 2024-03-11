@@ -1,24 +1,36 @@
 package kr.blugon.melodio.api
 
-object LogColor {
-    const val BLACK = "\u001B[30m"
-    const val RED = "\u001B[31m"
-    const val GREEN = "\u001B[32m"
-    const val YELLOW = "\u001B[33m"
-    const val BLUE = "\u001B[34m"
-    const val PURPLE = "\u001B[35m"
-    const val CYAN = "\u001B[36m"
-    const val WHITE = "\u001B[37m"
+import kr.blugon.melodio.Modules.nowDate
+import kr.blugon.melodio.api.LogColor.Companion.color
 
-    const val BOLD = "\u001B[1m"
 
-    const val DEFAULT = "\u001B[0m"
+val logger = Logger()
+class Logger {
+    fun log(msg: Any, displayTime: Boolean = true) {
+        println("[${nowDate().color(LogColor.GREEN)}] $msg")
+    }
+}
 
-    fun String.color(color: String): String {
-        return "${color}${this}${DEFAULT}"
+class LogColor(val colorCode: String) {
+    companion object {
+        val BLACK = LogColor("\u001B[30m")
+        val RED = LogColor("\u001B[31m")
+        val GREEN = LogColor("\u001B[32m")
+        val YELLOW = LogColor("\u001B[33m")
+        val BLUE = LogColor("\u001B[34m")
+        val PURPLE = LogColor("\u001B[35m")
+        val CYAN = LogColor("\u001B[36m")
+        val WHITE = LogColor("\u001B[37m")
+
+        val BOLD = LogColor("\u001B[1m")
+
+        val DEFAULT = LogColor("\u001B[0m")
+        fun String.color(color: LogColor): String {
+            return "${color.colorCode}${this}${LogColor.DEFAULT.colorCode}"
+        }
     }
 
-    fun String.inColor(text: String): String {
-        return "${this}${text}${DEFAULT}"
+    fun inColor(text: String): String {
+        return "${this.colorCode}${text}${DEFAULT.colorCode}"
     }
 }

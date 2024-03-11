@@ -1,27 +1,17 @@
 package kr.blugon.melodio
 
 import dev.kord.common.entity.PresenceStatus
-import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
-import dev.kord.core.behavior.channel.MessageChannelBehavior
-import dev.kord.core.behavior.channel.createMessage
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
 import dev.schlaubi.lavakord.LavaKord
 import dev.schlaubi.lavakord.kord.lavakord
+import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.isTest
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.api.AutoComplete
-import kr.blugon.melodio.api.Command
-import kr.blugon.melodio.buttons.*
-import kr.blugon.melodio.commands.*
-import kr.blugon.melodio.events.ClientReady
-import kr.blugon.melodio.events.JoinGuild
-import kr.blugon.melodio.events.VoiceStateUpdate
+import kr.blugon.melodio.api.OnCommand
 import java.io.File
-import java.net.URL
-import java.net.URLClassLoader
 
 
 object Main {
@@ -64,35 +54,27 @@ suspend fun main(args: Array<String>) {
     val rootPackage = Main.javaClass.`package`
 
     //Commands
-    rootPackage.classesRunnable("commands").forEach { runnable ->
-        runnable.run()
-        if(runnable is AutoComplete) {
-            runnable.autocomplete()
-        }
+    rootPackage.classesRunnable("commands").forEach {
+        (it as OnCommand).on()
     }
 
     //Events
-    rootPackage.classesRunnable("events").forEach { runnable ->
-        runnable.run()
-    }
+    rootPackage.classesRunnable("events")
 
     //Buttons
-    rootPackage.classesRunnable("buttons").forEach { runnable ->
-        runnable.run()
-    }
+    rootPackage.classesRunnable("buttons")
 
+    @OptIn(PrivilegedIntent::class)
     bot.login {
         intents += Intent.Guilds
         intents += Intent.GuildVoiceStates
-        @OptIn(PrivilegedIntent::class)
         intents += Intent.GuildMembers
         intents += Intent.GuildMessages
-        @OptIn(PrivilegedIntent::class)
         intents += Intent.MessageContent
 
         presence {
-            status = PresenceStatus.Offline
-            playing("/play | JVM")
+            status = PresenceStatus.Online
+            playing("/play | Kord")
         }
     }
 }
@@ -128,17 +110,15 @@ fun Package.classes(more: String = ""): ArrayList<Class<*>> {
     return classes
 }
 
-fun Package.classesRunnable(more: String = ""): ArrayList<Runnable> {
-    val runnables = ArrayList<Runnable>()
+fun Package.classesRunnable(more: String = ""): ArrayList<Any> {
+    val runnables = ArrayList<Any>()
     this.classes(more).forEach { clazz ->
         try {
             val instance = clazz.getDeclaredConstructor().newInstance()
-            runnables.add(instance as Runnable)
+            runnables.add(instance as Any)
         } catch (e: Exception) {
             return@forEach
         }
     }
     return runnables
 }
-
-interface Loadable

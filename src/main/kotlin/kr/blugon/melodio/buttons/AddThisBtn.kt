@@ -5,31 +5,29 @@ import dev.arbjerg.lavalink.protocol.v4.ResultStatus
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
-import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
 import dev.schlaubi.lavakord.kord.connectAudio
 import dev.schlaubi.lavakord.rest.loadItem
-import kr.blugon.melodio.Loadable
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules
 import kr.blugon.melodio.Modules.addThisButtons
 import kr.blugon.melodio.Modules.getThumbnail
-import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LinkAddon.varVolume
+import kr.blugon.melodio.api.LinkAddon.volume
 import kr.blugon.melodio.api.LinkAddon.voiceChannel
 import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.inColor
+import kr.blugon.melodio.api.Queue.Companion.addEvent
 import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.api.logger
 
-class AddThisBtn: Loadable, Runnable {
+class AddThisBtn {
     val name = "addThisButton"
 
-    override fun run() {
-        kordLogger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
+    init {
+        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
             val voiceChannel = interaction.user.getVoiceStateOrNull()
@@ -80,6 +78,7 @@ class AddThisBtn: Loadable, Runnable {
             // by Now command
                 else url.substring(urlStart, url.length-20)
             val response = interaction.deferPublicResponse()
+            link.addEvent()
 
             val item = link.loadItem(url)
             if(item.loadType != ResultStatus.NONE && item.loadType != ResultStatus.ERROR) {
@@ -91,7 +90,7 @@ class AddThisBtn: Loadable, Runnable {
                 is LoadResult.TrackLoaded -> {
                     val track = item.data
                     link.queue.add(track) {
-                        this.volume = link.varVolume
+                        this.volume = link.volume
                     }
 
                     response.respond {
@@ -119,7 +118,7 @@ class AddThisBtn: Loadable, Runnable {
                 is LoadResult.PlaylistLoaded -> {
                     val playlist = item.data
                     link.queue.add(playlist.tracks) {
-                        this.volume = link.varVolume
+                        this.volume = link.volume
                     }
 
                     response.respond {
@@ -149,7 +148,7 @@ class AddThisBtn: Loadable, Runnable {
                 is LoadResult.SearchResult -> {
                     val track = item.data.tracks[0]
                     link.queue.add(track) {
-                        this.volume = link.varVolume
+                        this.volume = link.volume
                     }
 
                     response.respond {
