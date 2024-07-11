@@ -1,6 +1,6 @@
 package kr.blugon.melodio
 
-import dev.arbjerg.lavalink.protocol.v4.Track
+import dev.arbjerg.lavalink.protocol.v4.TrackInfo
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.common.entity.Snowflake
@@ -16,13 +16,16 @@ import dev.schlaubi.lavakord.audio.Link
 import kr.blugon.melodio.api.LinkAddon.voiceChannel
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.LogColor.Companion.color
+import kr.blugon.melodio.api.TrackSourceType
+import kr.blugon.melodio.api.sourceType
 import mu.KLogger
+import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.floor
 import kotlin.time.Duration
 
-
+fun JSONObject.getStringOrNull(key: String): String? = if(has(key)) getString(key) else null
 object Modules {
     fun stringLimit(text: String, len: Int = 30, lastText: String = "..."): String {
         return if(text.length > len) text.substring(0..len)+lastText
@@ -89,9 +92,34 @@ object Modules {
         return (hour * 3600) + (minute * 60) + second
     }
 
-    fun getThumbnail(track: Track): String {
-        return "https://img.youtube.com/vi/${track.info.identifier}/mqdefault.jpg"
+    fun String.hyperlink(url: String, isBold: Boolean = true, stringLimit: Boolean = true): String {
+        var default = this.replace("[", "［").replace("]", "］")
+        if(stringLimit) default = stringLimit(default)
+        default = "[${default}](${url})"
+        if(isBold) default = default.bold
+        return default
     }
+
+    val TrackInfo.titleWithArtist: String
+        get() {
+            return "${
+                if(this.sourceType == TrackSourceType.Spotify) "${this.author} - "
+                else ""
+            }${this.title}"
+        }
+
+    val TrackInfo.displayTitle: String get() = this.displayTitle()
+    fun TrackInfo.displayTitle(isHyperlinked: Boolean = true): String {
+        val title = stringLimit(this.titleWithArtist)
+        return if(isHyperlinked) title.hyperlink("${this.uri}")
+        else title
+    }
+
+    val String.bold: String get() = "**$this**"
+    val String.strikethrough: String get() = "~~$this~~"
+    val String.underline: String get() = "__${this}__"
+    val String.italic: String get() = "_${this}_"
+    val String.box: String get() = "`$this`"
 
     val buttons = ActionRowBuilder().apply {
         this.interactionButton(ButtonStyle.Success, "stopButton") {
@@ -131,7 +159,7 @@ object Modules {
         println("[${nowDate().color(LogColor.GREEN).color(LogColor.BOLD)}] $msg")
     }
 
-    fun EmbedBuilder.usedUser(interaction: GuildComponentInteraction) {
+    fun EmbedBuilder.interactedUser(interaction: GuildComponentInteraction) {
         footer {
             this.text = interaction.user.globalName?: interaction.user.username
             this.icon = if(interaction.user.avatar == null) interaction.user.defaultAvatar.cdnUrl.toUrl()

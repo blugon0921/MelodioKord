@@ -9,15 +9,15 @@ import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.addThisButtons
-import kr.blugon.melodio.Modules.getThumbnail
+import kr.blugon.melodio.Modules.bold
+import kr.blugon.melodio.Modules.box
+import kr.blugon.melodio.Modules.displayTitle
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Modules.timeFormat
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.OnCommand
+import kr.blugon.melodio.api.*
 import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.logger
 import kotlin.math.floor
 
 class NowCmd: Command, OnCommand {
@@ -32,7 +32,7 @@ class NowCmd: Command, OnCommand {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -49,7 +49,7 @@ class NowCmd: Command, OnCommand {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -58,21 +58,21 @@ class NowCmd: Command, OnCommand {
 
             interaction.respondPublic {
                 embed {
-                    title = "**:musical_note: 현재 재생중인 노래**"
-                    description = "[**${current.info.title.replace("[", "［").replace("]", "］")}**](${current.info.uri})"
-                    image = getThumbnail(current)
+                    title = ":musical_note: 현재 재생중인 노래".bold
+                    description = current.info.displayTitle
+                    image = current.info.artworkUrl
                     color = Settings.COLOR_NORMAL
                     field {
-                        name = "**채널**"
-                        value = "**`${current.info.author}`**"
+                        name = (if(current.info.sourceType == TrackSourceType.Spotify) "아티스트" else "채널").bold
+                        value = current.info.author.box.bold
                         inline = true
                     }
                     val duration = timeFormat(current.info.length)
                     var timestamp = "${timeFormat(player.position)} / $duration"
                     if(current.info.isStream) timestamp = "LIVE"
                     field {
-                        name = "**길이**"
-                        value = "**`${timestamp}`**"
+                        name = "길이".bold
+                        value = timestamp.box.bold
                         inline = true
                     }
 

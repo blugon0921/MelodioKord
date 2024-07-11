@@ -10,6 +10,7 @@ import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.StringOption
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.timeFormat
@@ -36,7 +37,7 @@ class MoveCmd: Command, OnCommand {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -52,7 +53,7 @@ class MoveCmd: Command, OnCommand {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -66,7 +67,7 @@ class MoveCmd: Command, OnCommand {
             } catch (e: Exception) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**시간 형식이 잘못되었습니다**"
+                        title = "시간 형식이 잘못되었습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -78,7 +79,7 @@ class MoveCmd: Command, OnCommand {
             } catch (e: Exception) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**${timeFormat(ms/1000)} 위치로 이동할 수 없습니다**"
+                        title = "${timeFormat(ms/1000)} 위치로 이동할 수 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -86,12 +87,12 @@ class MoveCmd: Command, OnCommand {
             }
 
             val embed = EmbedBuilder().apply {
-                title = "**:left_right_arrow: ${timeFormat(ms)} 위치로 이동했어요**"
+                title = ":left_right_arrow: ${timeFormat(ms)} 위치로 이동했어요".bold
                 color = Settings.COLOR_NORMAL
             }
 
             if(ms >= current.info.length) {
-                embed.title = "**:left_right_arrow: ${timeFormat(current.info.length)} 위치로 이동했어요**"
+                embed.title = ":left_right_arrow: ${timeFormat(current.info.length)} 위치로 이동했어요".bold
             }
 
             interaction.respondPublic {

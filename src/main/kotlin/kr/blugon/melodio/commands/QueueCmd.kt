@@ -10,15 +10,14 @@ import dev.schlaubi.lavakord.audio.Link
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
+import kr.blugon.melodio.Modules.displayTitle
 import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Modules.timeFormat
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.OnCommand
+import kr.blugon.melodio.api.*
 import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.logger
 import kotlin.math.ceil
 
 class QueueCmd: Command, OnCommand {
@@ -33,7 +32,7 @@ class QueueCmd: Command, OnCommand {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -49,7 +48,7 @@ class QueueCmd: Command, OnCommand {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -59,9 +58,9 @@ class QueueCmd: Command, OnCommand {
             if(link.queue.isEmpty()) {
                 interaction.respondPublic {
                     embed {
-                        title = "**:clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]**"
+                        title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]".bold
                         color = Settings.COLOR_NORMAL
-                        description = "**💿 [${stringLimit(current.info.title).replace("[", "［").replace("]", "［")}](${current.info.uri})\n**"
+                        description = "💿 ${current.info.displayTitle}\n"
                     }
                     components = mutableListOf(buttons)
                 }
@@ -72,7 +71,7 @@ class QueueCmd: Command, OnCommand {
 
             interaction.respondPublic {
                 embed {
-                    title = "**:clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]**"
+                    title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]".bold
                     color = Settings.COLOR_NORMAL
                     description = pages[0]
                     footer {
@@ -91,48 +90,39 @@ class QueueCmd: Command, OnCommand {
                     this.interactionButton(ButtonStyle.Primary, "reloadPage") {
                         this.label = "🔄️새로고침"
                     }
-                })
-                components = mutableListOf(buttons)
+                }, buttons)
             }
         }
     }
 
     companion object {
-        val pageItemCount = 20
+        const val PageItemCount = 20
 
-        fun queuePage(link: Link, current: Track, maxLength: Int = pageItemCount): List<String> {
+        fun queuePage(link: Link, current: Track, itemCountInPage: Int = PageItemCount): List<String> {
             val page = ArrayList<String>()
-            if(maxLength < link.queue.size) { //2페이지 이상
+            if(itemCountInPage < link.queue.size) { //2페이지 이상
                 var count = 0
-                for(p in 0 until  ceil(link.queue.size/(maxLength-1.0)).toInt()) {
-                    var pageDescription = ""
-                    pageDescription += "**💿 [${stringLimit(current.info.title).replace("[", "［").replace("]", "］")}](${current.info.uri})**\n\n"
-                    pageDescription += "**"
+                for(p in 0 until  ceil(link.queue.size/itemCountInPage.toDouble()).toInt()) {
+                    var pageDescription = "💿 ${current.info.displayTitle}\n\n"
                     val beforeCount = count
-                    inner@for(i in beforeCount until maxLength+beforeCount) {
+                    inner@for(i in beforeCount until itemCountInPage+beforeCount) {
                         try {
-                            var title = stringLimit(link.queue[i].track.info.title)
-                            title = title.replace("[", "［").replace("]", "］")
-                            pageDescription += "${i+1}.ﾠ[${title}](${link.queue[i].track.info.uri})\n"
+                            val track = link.queue[i].track
+                            pageDescription += "${"${i+1}.".bold}ﾠ${track.info.displayTitle}\n"
                             count++
                         } catch (_: IndexOutOfBoundsException) { break@inner }
                     }
                     if(0 < link.queue.size-count) {
-                        pageDescription += "\n+${link.queue.size-count}개"
+                        pageDescription += "\n"+"+${link.queue.size-count}개".bold
                     }
-                    pageDescription += "**"
-//                println(pageDescription)
+//                    println(pageDescription)
                     page.add(pageDescription)
                 }
             } else { //1페이지
-                var description = ""
-                description += "**💿 [${stringLimit(current.info.title).replace("[", "［").replace("]", "］")}](${current.info.uri})**\n\n**"
+                var description = "💿 ${current.info.displayTitle}\n\n"
                 for(i in 0 until link.queue.size) {
-                    var title = stringLimit(link.queue[i].track.info.title)
-                    title = title.replace("[", "［").replace("]", "］")
-                    description += "${i+1}.ﾠ[${title}](${link.queue[i].track.info.uri})\n"
+                    description += "${"${i+1}.".bold}ﾠ${link.queue[i].track.info.displayTitle}\n"
                 }
-                description += "**"
                 page.add(description)
             }
             return page

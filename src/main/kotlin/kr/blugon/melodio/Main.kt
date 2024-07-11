@@ -9,19 +9,21 @@ import dev.schlaubi.lavakord.kord.lavakord
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.isTest
+import kr.blugon.melodio.Main.lavalink
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.api.OnCommand
 import java.io.File
+import kotlin.time.Duration.Companion.seconds
 
 
 object Main {
     lateinit var bot: Kord
-    lateinit var lavalink: LavaKord
+    private lateinit var lavalink: LavaKord
     var Kord.manager: LavaKord
         get() = lavalink
         set(value) { lavalink = value }
 
-    val kordIsReady = HashMap<Kord, Boolean>()
+    private val kordIsReady = HashMap<Kord, Boolean>()
     var Kord.isReady: Boolean
         get() {
             if(kordIsReady[this] == null) kordIsReady[this] = false
@@ -32,7 +34,7 @@ object Main {
         }
 
 
-    val kordIsTestBot = HashMap<Kord, Boolean>()
+    private val kordIsTestBot = HashMap<Kord, Boolean>()
     var Kord.isTest: Boolean
         get() {
             if(kordIsTestBot[this] == null) kordIsTestBot[this] = false
@@ -44,11 +46,19 @@ object Main {
 }
 
 suspend fun main(args: Array<String>) {
-    bot = if (args[0] == "test") Kord(Settings.TEST_TOKEN)
-          else Kord(Settings.TOKEN)
+    bot = Kord(
+        if (args[0] == "test") Settings.TEST_TOKEN
+        else Settings.TOKEN
+    )
     bot.isTest = args[0] == "test"
     bot.manager = bot.lavakord()
 
+    bot.manager = bot.lavakord {
+        link {
+            autoReconnect = true
+            retry = linear(2.seconds, 60.seconds, 10)
+        }
+    }
     bot.manager.addNode("ws://${Settings.LAVALINK_HOST}:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD)
 
     val rootPackage = Main.javaClass.`package`

@@ -8,21 +8,21 @@ import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.IntegerOption
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
+import kr.blugon.melodio.Modules.displayTitle
+import kr.blugon.melodio.Modules.hyperlink
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.api.*
 import kr.blugon.melodio.api.LinkAddon.destroyPlayer
 import kr.blugon.melodio.api.LinkAddon.isRepeatedShuffle
 import kr.blugon.melodio.api.LinkAddon.repeatMode
 import kr.blugon.melodio.api.LinkAddon.repeatedShuffleCount
 import kr.blugon.melodio.api.LinkAddon.volume
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.OnCommand
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.api.Queue.Companion.skip
-import kr.blugon.melodio.api.RepeatMode
-import kr.blugon.melodio.api.logger
 
 class SkipCmd: Command, OnCommand {
     override val command = "skip"
@@ -39,7 +39,7 @@ class SkipCmd: Command, OnCommand {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -55,7 +55,7 @@ class SkipCmd: Command, OnCommand {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -65,12 +65,12 @@ class SkipCmd: Command, OnCommand {
             if(link.queue.isEmpty()) {
                 interaction.respondPublic {
                     embed {
-                        title = "**:track_next: 노래 1개를 건너뛰었습니다**"
+                        title = ":track_next: 노래 1개를 건너뛰었습니다".bold
                         description = """
-                            [**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})
+                            [${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}](${current.info.uri})
                             
                             
-                            **곡 없음**
+                            곡 없음
                         """.trimIndent()
                         color = Settings.COLOR_NORMAL
                     }
@@ -100,32 +100,32 @@ class SkipCmd: Command, OnCommand {
             }
 
             val embed = EmbedBuilder()
-            embed.title = "**:track_next: 노래 ${count}개를 건너뛰었습니다**"
+            embed.title = ":track_next: 노래 ${count}개를 건너뛰었습니다".bold
             embed.color = Settings.COLOR_NORMAL
 
             //만약 대기열 크기만큼 스킵하면서 대기열 반복중이 아니면
             if(link.queue.size == count && link.repeatMode != RepeatMode.QUEUE) {
                 //대기열 크기만큼 건너뛰는 메세지로 바꾸기
-                embed.title = "**:track_next: 노래 ${link.queue.size}개를 건너뛰었습니다**"
+                embed.title = ":track_next: 노래 ${link.queue.size}개를 건너뛰었습니다".bold
             }
 
             //만약 스킵하는 개수가 대기열보다 작다면
             if(count <= link.queue.size) {
                 //스킵
                 embed.description = """
-                    [**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})
+                    ${current.info.displayTitle}
                     
                     
-                    :arrow_forward: [**${stringLimit(link.queue[count-1].track.info.title.replace("[", "［").replace("]", "［"))}**](${link.queue[count-1].track.info.uri})
+                    :arrow_forward: ${link.queue[count-1].track.info.displayTitle}
                 """.trimIndent()
             } else {
                 //스킵하는 개수가 대기열보다 크면서 대기열을 반복중이면
                 if(link.repeatMode == RepeatMode.QUEUE) {
                     embed.description = """
-                        [**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})
+                        ${current.info.displayTitle}
                         
                         
-                        :arrow_forward: [**${stringLimit(link.queue[count-1].track.info.title.replace("[", "［").replace("]", "［"))}**](${link.queue[count-1].track.info.uri})
+                        :arrow_forward: ${link.queue[count-1].track.info.displayTitle}
                     """.trimIndent()
                 }
             }

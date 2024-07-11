@@ -17,16 +17,19 @@ import kr.blugon.kordmand.StringOption
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.addThisButtons
-import kr.blugon.melodio.Modules.getThumbnail
+import kr.blugon.melodio.Modules.bold
+import kr.blugon.melodio.Modules.box
+import kr.blugon.melodio.Modules.displayTitle
+import kr.blugon.melodio.Modules.hyperlink
 import kr.blugon.melodio.Modules.timeFormat
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.api.*
 import kr.blugon.melodio.api.LinkAddon.volume
 import kr.blugon.melodio.api.LinkAddon.voiceChannel
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.OnCommand
 import kr.blugon.melodio.api.Queue.Companion.addEvent
 import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.getStringOrNull
+import org.json.JSONObject
 import org.json.simple.JSONArray
 import org.json.simple.parser.JSONParser
 import java.io.BufferedReader
@@ -77,12 +80,10 @@ class PlayCmd: Command, OnCommand {
             val player = link.player
             var url = interaction.command.strings["song"]!!
             val isShuffle = interaction.command.booleans["shuffle"]?: false
-            val index = (interaction.command.integers["index"] ?: ((link.queue.size - 1))).toInt()
+            val index = interaction.command.integers["index"]?.toInt() ?: link.queue.size
             val response = interaction.deferPublicResponse()
             link.addEvent()
-            if(!url.startsWith("http")) {
-                url = "ytsearch:$url"
-            }
+            if(!url.startsWith("http")) url = "ytsearch:$url"
             val item = link.loadItem(url)
             if(item.loadType != ResultStatus.NONE && item.loadType != ResultStatus.ERROR) {
                 link.connectAudio(voiceChannel.channelId!!)
@@ -95,20 +96,20 @@ class PlayCmd: Command, OnCommand {
                     }
                     response.respond {
                         embed {
-                            title = "**:musical_note: 대기열에 노래를 추가하였습니다**"
-                            description = "[**${track.info.title.replace("[", "［").replace("]", "］")}**](${track.info.uri})"
-                            image = getThumbnail(track)
+                            title = ":musical_note: 대기열에 노래를 추가하였습니다".bold
+                            description = track.info.displayTitle
+                            image = track.info.artworkUrl
                             color = Settings.COLOR_NORMAL
                             field {
-                                name = "**채널**"
-                                value = "**`${track.info.author}`**"
+                                name = (if(track.info.sourceType == TrackSourceType.Spotify) "아티스트" else "채널").bold
+                                value = track.info.author.box.bold
                                 inline = true
                             }
                             var duration = timeFormat(track.info.length)
                             if(track.info.isStream) duration = "LIVE"
                             field {
-                                name = "**길이**"
-                                value = "**`${duration}`**"
+                                name = "길이".bold
+                                value = duration.box.bold
                                 inline = true
                             }
                         }
@@ -120,15 +121,21 @@ class PlayCmd: Command, OnCommand {
                     link.queue.add(playlist.tracks, index) {
                         this.volume = link.volume
                     }
+                    val pluginInfo = JSONObject(playlist.pluginInfo.toString())
                     response.respond {
                         embed {
-                            title = "**:musical_note: 대기열에 재생목록을 추가하였습니다**"
-                            description = "[**${playlist.info.name.replace("[", "［").replace("]", "］")}**](${url})"
-                            image = getThumbnail(playlist.tracks[0])
+                            title = ":musical_note: 대기열에 재생목록을 추가하였습니다".bold
+                            description = playlist.info.name.hyperlink(pluginInfo.getStringOrNull("url")?: url)
+                            image = pluginInfo.getStringOrNull("artworkUrl")?: playlist.tracks[0].info.artworkUrl
                             color = Settings.COLOR_NORMAL
                             field {
-                                name = "**영상 개수**"
-                                value = "**`${playlist.tracks.size}`**"
+                                name = "재생목록 제작자".bold
+                                value = pluginInfo.getStringOrNull("author")?.box?.bold?: "Unknown"
+                                inline = true
+                            }
+                            field {
+                                name = (if(playlist.tracks[0].info.sourceType == TrackSourceType.Spotify) "곡 개수" else "영상 개수").bold
+                                value = "${playlist.tracks.size}".box.bold
                                 inline = true
                             }
                             var duration = 0L
@@ -136,35 +143,35 @@ class PlayCmd: Command, OnCommand {
                                 duration+=track.info.length
                             }
                             field {
-                                name = "**길이**"
-                                value = "**`${timeFormat(duration)}`**"
+                                name = "길이".bold
+                                value = timeFormat(duration).box.bold
                                 inline = true
                             }
                         }
                         components = mutableListOf(addThisButtons)
                     }
                 }
-                is LoadResult.SearchResult -> {
+                is LoadResult.SearchResult -> { //검색
                     val track = item.data.tracks[0]
                     link.queue.add(track, index) {
                         this.volume = link.volume
                     }
                     response.respond {
                         embed {
-                            title = "**:musical_note: 대기열에 노래를 추가하였습니다**"
-                            description = "[**${track.info.title.replace("[", "［").replace("]", "］")}**](${track.info.uri})"
-                            image = getThumbnail(track)
+                            title = ":musical_note: 대기열에 노래를 추가하였습니다".bold
+                            description = track.info.displayTitle
+                            image = track.info.artworkUrl
                             color = Settings.COLOR_NORMAL
                             field {
-                                name = "**채널**"
-                                value = "**`${track.info.author}`**"
+                                name = (if(track.info.sourceType == TrackSourceType.Spotify) "아티스트" else "채널").bold
+                                value = track.info.author.box.bold
                                 inline = true
                             }
                             var duration = timeFormat(track.info.length)
                             if(track.info.isStream) duration = "LIVE"
                             field {
-                                name = "**길이**"
-                                value = "**`${duration}`**"
+                                name = "길이".bold
+                                value = duration.box.bold
                                 inline = true
                             }
                         }
@@ -175,7 +182,7 @@ class PlayCmd: Command, OnCommand {
                     if(link.queue.current == null) link.destroy()
                     response.respond {
                         embed {
-                            title = "**영상을 찾을 수 없습니다**"
+                            title = "영상을 찾을 수 없습니다".bold
                             color = Settings.COLOR_ERROR
                         }
                     }
@@ -186,7 +193,7 @@ class PlayCmd: Command, OnCommand {
                     println(item.data)
                     response.respond {
                         embed {
-                            title = "**영상을 검색하는중 오류가 발생했습니다**"
+                            title = "영상을 검색하는중 오류가 발생했습니다".bold
                             color = Settings.COLOR_ERROR
                         }
                     }

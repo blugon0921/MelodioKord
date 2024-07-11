@@ -7,6 +7,7 @@ import kr.blugon.kordmand.BooleanOption
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Settings
@@ -34,7 +35,7 @@ class ShuffleCmd: Command, OnCommand {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -50,7 +51,7 @@ class ShuffleCmd: Command, OnCommand {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -60,7 +61,7 @@ class ShuffleCmd: Command, OnCommand {
             if(link.queue.size < 2) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**대기열에 노래가 2개 이상이어야 합니다**"
+                        title = "대기열에 노래가 2개 이상이어야 합니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -72,7 +73,7 @@ class ShuffleCmd: Command, OnCommand {
                 link.queue.shuffle()
                 interaction.respondPublic {
                     embed {
-                        title = "**:twisted_rightwards_arrows: 대기열 순서를 섞었습니다**"
+                        title = ":twisted_rightwards_arrows: 대기열 순서를 섞었습니다".bold
                         color = Settings.COLOR_NORMAL
                     }
                     components = mutableListOf(buttons)
@@ -83,7 +84,7 @@ class ShuffleCmd: Command, OnCommand {
                     link.repeatedShuffleCount = 0
                     interaction.respondPublic {
                         embed {
-                            title = "**:arrow_right: 대기열 순서 섞기 반복을 해제했습니다**"
+                            title = ":arrow_right: 대기열 순서 섞기 반복을 해제했습니다".bold
                             color = Settings.COLOR_NORMAL
                         }
                         components = mutableListOf(buttons)
@@ -93,7 +94,7 @@ class ShuffleCmd: Command, OnCommand {
                 if(link.repeatMode != RepeatMode.QUEUE) {
                     interaction.respondEphemeral {
                         embed {
-                            title = "**대기열을 반복 중이어야 합니다**"
+                            title = "대기열을 반복 중이어야 합니다".bold
                             color = Settings.COLOR_ERROR
                         }
                     }
@@ -104,7 +105,7 @@ class ShuffleCmd: Command, OnCommand {
                 link.repeatedShuffleCount = 0
                 interaction.respondPublic {
                     embed {
-                        title = "**:twisted_rightwards_arrows: 대기열 순서 섞기를 반복합니다**"
+                        title = ":twisted_rightwards_arrows: 대기열 순서 섞기를 반복합니다".bold
                         color = Settings.COLOR_NORMAL
                     }
                     components = mutableListOf(buttons)

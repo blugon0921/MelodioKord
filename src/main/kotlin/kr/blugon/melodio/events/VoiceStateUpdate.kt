@@ -6,7 +6,7 @@ import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.schlaubi.lavakord.audio.Link
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.log
@@ -16,18 +16,19 @@ import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.Queue.Companion.queue
 import kr.blugon.melodio.api.logger
 
+@OptIn(DelicateCoroutinesApi::class)
 class VoiceStateUpdate {
     val name = "voiceStateUpdate"
 
     companion object {
-        val playerDestroyThread = HashMap<ULong, DestroyThread?>()
-        var Link.destroyThread: DestroyThread?
+        val playerDestoryScopeRunning = HashMap<ULong, Boolean>()
+        var Link.destoryScopeRunning: Boolean
             get() {
-                if(playerDestroyThread[this.guildId] == null) playerDestroyThread[this.guildId] = null
-                return playerDestroyThread[this.guildId]
+                if(playerDestoryScopeRunning[this.guildId] == null) playerDestoryScopeRunning[this.guildId] = false
+                return playerDestoryScopeRunning[this.guildId]!!
             }
             set(value) {
-                playerDestroyThread[this.guildId] = value
+                playerDestoryScopeRunning[this.guildId] = value
             }
     }
 
@@ -85,40 +86,36 @@ class VoiceStateUpdate {
                 }
             }
 
+            val oldMembers = ArrayList<Member>()
+            old.getChannelOrNull()?.voiceStates?.collect {
+                if(it.getMember().isBot) return@collect
+                oldMembers.add(it.getMember())
+            }
             when(stateChange.type) {
                 VoiceUpdateType.JOIN -> {
-                    if(stateChange.members.isNotEmpty() && link.player.paused) {
+                    if(oldMembers.isEmpty() && stateChange.members.isNotEmpty() && link.player.paused) {
                         link.player.pause(false)
-                        if(link.destroyThread != null) {
-                            link.destroyThread!!.stopFlag = true
-                            link.destroyThread = null
-                        }
+                        link.destoryScopeRunning = false
                     }
                 }
                 VoiceUpdateType.LEAVE -> {
                     if(stateChange.members.isEmpty() && link.queue.current != null) {
                         link.player.pause(true)
-                        link.destroyThread = DestroyThread(link)
-                        link.destroyThread!!.start()
+                        link.destoryScopeRunning = true
+                        GlobalScope.launch {
+                            var seconds = 0
+                            while (link.destoryScopeRunning) {
+                                if((10*60) <= seconds) { //10분
+                                    link.destroyPlayer()
+                                    break
+                                }
+                                seconds++
+                                delay(1000)
+                            }
+                        }
                     }
                 }
                 else -> {}
-            }
-        }
-    }
-}
-
-class DestroyThread(val link: Link, var stopFlag: Boolean = false): Thread() {
-    var second = 0
-
-    override fun run() {
-        suspend {
-            while (!stopFlag) {
-                if((10*60) <= second) { //10분
-                    link.destroyPlayer()
-                }
-                second++
-                delay(1000)
             }
         }
     }

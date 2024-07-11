@@ -8,10 +8,11 @@ import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
+import kr.blugon.melodio.Modules.displayTitle
 import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.usedUser
+import kr.blugon.melodio.Modules.interactedUser
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.Queue.Companion.queue
@@ -28,7 +29,7 @@ class PauseBtn {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -44,7 +45,7 @@ class PauseBtn {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -55,11 +56,11 @@ class PauseBtn {
             player.pause(!isPaused)
 
             val embed = EmbedBuilder()
-            if(isPaused) embed.title = "**:arrow_forward: 노래 일시정지를 해제했습니다**"
-            else embed.title = "**:pause_button: 노래를 일시정지 했습니다**"
+            if(isPaused) embed.title = ":arrow_forward: 노래 일시정지를 해제했습니다".bold
+            else embed.title = ":pause_button: 노래를 일시정지 했습니다".bold
             embed.color = Settings.COLOR_NORMAL
-            embed.description = "[**${Modules.stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})"
-            embed.usedUser(interaction)
+            embed.description = current.info.displayTitle
+            embed.interactedUser(interaction)
             interaction.respondPublic {
                 embeds = mutableListOf(embed)
                 components = mutableListOf(buttons)

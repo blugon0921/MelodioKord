@@ -7,7 +7,9 @@ import dev.kord.rest.builder.message.embed
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
+import kr.blugon.melodio.Modules.displayTitle
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.log
 import kr.blugon.melodio.Modules.stringLimit
@@ -29,7 +31,7 @@ class PauseCmd: Command, OnCommand {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -46,7 +48,7 @@ class PauseCmd: Command, OnCommand {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -56,7 +58,7 @@ class PauseCmd: Command, OnCommand {
             if(player.paused) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**노래가 이미 일시정지 중입니다**"
+                        title = "노래가 이미 일시정지 중입니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -64,9 +66,9 @@ class PauseCmd: Command, OnCommand {
                 player.pause(true)
                 interaction.respondPublic {
                     embed {
-                        title = "**:pause_button: 노래를 일시정지 했습니다**"
+                        title = ":pause_button: 노래를 일시정지 했습니다".bold
                         color = Settings.COLOR_NORMAL
-                        description = "[**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})"
+                        description = current.info.displayTitle
                     }
                     components = mutableListOf(buttons)
                 }

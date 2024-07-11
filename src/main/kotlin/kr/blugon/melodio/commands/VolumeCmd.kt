@@ -10,7 +10,6 @@ import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LinkAddon.isVolumePlay
 import kr.blugon.melodio.api.LinkAddon.volume
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.OnCommand
@@ -35,7 +34,7 @@ import kotlin.time.Duration.Companion.seconds
 //            if(voiceChannel?.channelId == null) {
 //                interaction.respondEphemeral {
 //                    embed {
-//                        title = "**음성 채널에 접속해있지 않습니다**"
+//                        title = "음성 채널에 접속해있지 않습니다".bold
 //                        color = Settings.COLOR_ERROR
 //                    }
 //                }
@@ -51,7 +50,7 @@ import kotlin.time.Duration.Companion.seconds
 //            if(current == null) {
 //                interaction.respondEphemeral {
 //                    embed {
-//                        title = "**재생중인 노래가 없습니다**"
+//                        title = "재생중인 노래가 없습니다".bold
 //                        color = Settings.COLOR_ERROR
 //                    }
 //                }
@@ -76,7 +75,7 @@ import kotlin.time.Duration.Companion.seconds
 //
 //            interaction.respondPublic {
 //                embed {
-//                    title = "**${icon} 볼륨을 ${volume}%로 설정했습니다**"
+//                    title = "${icon} 볼륨을 ${volume}%로 설정했습니다".bold
 //                    color = Settings.COLOR_NORMAL
 //                }
 //                components = mutableListOf(buttons)

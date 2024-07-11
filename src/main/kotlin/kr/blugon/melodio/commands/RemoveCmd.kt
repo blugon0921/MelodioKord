@@ -7,7 +7,9 @@ import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.IntegerOption
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
+import kr.blugon.melodio.Modules.displayTitle
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.stringLimit
 import kr.blugon.melodio.Settings
@@ -33,7 +35,7 @@ class RemoveCmd: Command, OnCommand {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -49,7 +51,7 @@ class RemoveCmd: Command, OnCommand {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -60,7 +62,7 @@ class RemoveCmd: Command, OnCommand {
             if(link.queue.isEmpty()) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**대기열이 비어있습니다**"
+                        title = "대기열이 비어있습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -69,7 +71,7 @@ class RemoveCmd: Command, OnCommand {
             if(link.queue.size < number) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**${link.queue.size}이하의 숫자를 입력해주세요**"
+                        title = "${link.queue.size}이하의 숫자를 입력해주세요".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -79,9 +81,9 @@ class RemoveCmd: Command, OnCommand {
             val rmTrack = link.queue[number-1]
             interaction.respondPublic {
                 embed {
-                    title = "**<:minus:1104057498727632906> ${number}번 노래를 삭제했어요**"
+                    title = "<:minus:1104057498727632906> ${number}번 노래를 삭제했어요".bold
                     color = Settings.COLOR_NORMAL
-                    description = "[**${stringLimit(rmTrack.track.info.title.replace("[", "［").replace("]", "［"))}**](${rmTrack.track.info.uri})"
+                    description = rmTrack.track.info.displayTitle
                 }
                 components = mutableListOf(buttons)
             }

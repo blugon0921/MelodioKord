@@ -11,6 +11,7 @@ import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.log
@@ -32,7 +33,7 @@ class BeforePageBtn {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -48,7 +49,7 @@ class BeforePageBtn {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -85,7 +86,7 @@ class BeforePageBtn {
             interaction.deferPublicMessageUpdate()
             interaction.message.edit {
                 embed {
-                    title = "**:clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]**"
+                    title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]".bold
                     color = Settings.COLOR_NORMAL
                     description = pages[nowPage-1]
                     footer {

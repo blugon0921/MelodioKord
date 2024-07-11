@@ -14,14 +14,22 @@ import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.Modules
 import kr.blugon.melodio.Modules.addThisButtons
-import kr.blugon.melodio.Modules.getThumbnail
+import kr.blugon.melodio.Modules.bold
+import kr.blugon.melodio.Modules.box
+import kr.blugon.melodio.Modules.displayTitle
+import kr.blugon.melodio.Modules.hyperlink
+import kr.blugon.melodio.Modules.timeFormat
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.LinkAddon.volume
 import kr.blugon.melodio.api.LinkAddon.voiceChannel
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.Queue.Companion.addEvent
 import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.api.TrackSourceType
 import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.api.sourceType
+import kr.blugon.melodio.getStringOrNull
+import org.json.JSONObject
 
 class AddThisBtn {
     val name = "addThisButton"
@@ -59,24 +67,16 @@ class AddThisBtn {
             var url = interaction.message.embeds[0].description!!
             var urlStart = 0
             for(i in 7 until url.length) {
-                if(
-                    url[i] != 'h' ||
-                    url[i+1] != 't' ||
-                    url[i+2] != 't' ||
-                    url[i+3] != 'p' ||
-                    url[i+4] != 's' ||
-                    url[i+5] != ':' ||
-                    url[i+6] != '/' ||
-                    url[i+7] != '/'
-                ) continue
+                if(!url.substring(i).startsWith("https://")) continue
                 urlStart = i
                 break
             }
 
-            // by Play command
-            url = if(interaction.message.embeds[0].title != "**:musical_note: 현재 재생중인 노래**") url.substring(urlStart, url.length-1)
-            // by Now command
-                else url.substring(urlStart, url.length-20)
+
+            url = when(interaction.message.embeds[0].title != ":musical_note: 현재 재생중인 노래".bold) {
+                true -> url.substring(urlStart, url.length-1) // by Play command
+                false -> url.substring(urlStart, url.length-20) // by Now command
+            }
             val response = interaction.deferPublicResponse()
             link.addEvent()
 
@@ -92,23 +92,22 @@ class AddThisBtn {
                     link.queue.add(track) {
                         this.volume = link.volume
                     }
-
                     response.respond {
                         embed {
-                            title = "**:musical_note: 대기열에 노래를 추가하였습니다**"
-                            description = "[**${track.info.title.replace("[", "［").replace("]", "］")}**](${track.info.uri})"
-                            image = getThumbnail(track)
+                            title = ":musical_note: 대기열에 노래를 추가하였습니다".bold
+                            description = track.info.displayTitle
+                            image = track.info.artworkUrl
                             color = Settings.COLOR_NORMAL
                             field {
-                                name = "**채널**"
-                                value = "**`${track.info.author}`**"
+                                name = (if(track.info.sourceType == TrackSourceType.Spotify) "아티스트" else "채널").bold
+                                value = track.info.author.box.bold
                                 inline = true
                             }
-                            var duration = Modules.timeFormat(track.info.length)
+                            var duration = timeFormat(track.info.length)
                             if(track.info.isStream) duration = "LIVE"
                             field {
-                                name = "**길이**"
-                                value = "**`${duration}`**"
+                                name = "길이".bold
+                                value = duration.box.bold
                                 inline = true
                             }
                         }
@@ -120,16 +119,21 @@ class AddThisBtn {
                     link.queue.add(playlist.tracks) {
                         this.volume = link.volume
                     }
-
+                    val pluginInfo = JSONObject(playlist.pluginInfo.toString())
                     response.respond {
                         embed {
-                            title = "**:musical_note: 대기열에 재생목록을 추가하였습니다**"
-                            description = "[**${playlist.info.name.replace("[", "［").replace("]", "］")}**](${url})"
-                            image = getThumbnail(playlist.tracks[0])
+                            title = ":musical_note: 대기열에 재생목록을 추가하였습니다".bold
+                            description = playlist.info.name.hyperlink(pluginInfo.getStringOrNull("url")?: url)
+                            image = pluginInfo.getStringOrNull("artworkUrl")?: playlist.tracks[0].info.artworkUrl
                             color = Settings.COLOR_NORMAL
                             field {
-                                name = "**영상 개수**"
-                                value = "**`${playlist.tracks.size}`**"
+                                name = "재생목록 제작자".bold
+                                value = pluginInfo.getStringOrNull("author")?.box?.bold?: "Unknown"
+                                inline = true
+                            }
+                            field {
+                                name = (if(playlist.tracks[0].info.sourceType == TrackSourceType.Spotify) "곡 개수" else "영상 개수").bold
+                                value = "${playlist.tracks.size}".box.bold
                                 inline = true
                             }
                             var duration = 0L
@@ -137,36 +141,35 @@ class AddThisBtn {
                                 duration+=track.info.length
                             }
                             field {
-                                name = "**길이**"
-                                value = "**`${Modules.timeFormat(duration)}`**"
+                                name = "길이".bold
+                                value = timeFormat(duration).box.bold
                                 inline = true
                             }
                         }
                         components = mutableListOf(addThisButtons)
                     }
                 }
-                is LoadResult.SearchResult -> {
+                is LoadResult.SearchResult -> { //검색
                     val track = item.data.tracks[0]
                     link.queue.add(track) {
                         this.volume = link.volume
                     }
-
                     response.respond {
                         embed {
-                            title = "**:musical_note: 대기열에 노래를 추가하였습니다**"
-                            description = "[**${track.info.title.replace("[", "［").replace("]", "］")}**](${track.info.uri})"
-                            image = getThumbnail(track)
+                            title = ":musical_note: 대기열에 노래를 추가하였습니다".bold
+                            description = track.info.displayTitle
+                            image = track.info.artworkUrl
                             color = Settings.COLOR_NORMAL
                             field {
-                                name = "**채널**"
-                                value = "**`${track.info.author}`**"
+                                name = (if(track.info.sourceType == TrackSourceType.Spotify) "아티스트" else "채널").bold
+                                value = track.info.author.box.bold
                                 inline = true
                             }
-                            var duration = Modules.timeFormat(track.info.length)
+                            var duration = timeFormat(track.info.length)
                             if(track.info.isStream) duration = "LIVE"
                             field {
-                                name = "**길이**"
-                                value = "**`${duration}`**"
+                                name = "길이".bold
+                                value = duration.box.bold
                                 inline = true
                             }
                         }
@@ -177,7 +180,7 @@ class AddThisBtn {
                     if(link.queue.current == null) link.destroy()
                     response.respond {
                         embed {
-                            title = "**영상을 찾을 수 없습니다**"
+                            title = "영상을 찾을 수 없습니다".bold
                             color = Settings.COLOR_ERROR
                         }
                     }
@@ -185,9 +188,10 @@ class AddThisBtn {
                 }
                 is LoadResult.LoadFailed -> {
                     if(link.queue.current == null) link.destroy()
+                    println(item.data)
                     response.respond {
                         embed {
-                            title = "**영상을 검색하는중 오류가 발생했습니다**"
+                            title = "영상을 검색하는중 오류가 발생했습니다".bold
                             color = Settings.COLOR_ERROR
                         }
                     }

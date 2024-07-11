@@ -8,10 +8,12 @@ import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
+import kr.blugon.melodio.Modules.displayTitle
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Modules.stringLimit
-import kr.blugon.melodio.Modules.usedUser
+import kr.blugon.melodio.Modules.interactedUser
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.LogColor
 import kr.blugon.melodio.api.Queue.Companion.queue
@@ -29,7 +31,7 @@ class SkipBtn {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -45,7 +47,7 @@ class SkipBtn {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -54,23 +56,23 @@ class SkipBtn {
 
             val track = link.skip()
             val embed = EmbedBuilder()
-            embed.title = "**:track_next: 노래 1개를 건너뛰었습니다**"
+            embed.title = ":track_next: 노래 1개를 건너뛰었습니다".bold
             embed.description = """
-                [**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})
+                ${current.info.displayTitle}
                 
                 
-                **곡 없음**
+                곡 없음
             """.trimIndent()
             if(track != null) {
                 embed.description = """
-                    [**${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}**](${current.info.uri})
-                    
-                    
-                    :arrow_forward: [**${stringLimit(track.info.title.replace("[", "［").replace("]", "［"))}**](${track.info.uri})
+                    ${current.info.displayTitle}
+                                        
+                                        
+                    :arrow_forward: ${track.info.displayTitle}
                 """.trimIndent()
             }
             embed.color = Settings.COLOR_NORMAL
-            embed.usedUser(interaction)
+            embed.interactedUser(interaction)
 
             interaction.respondPublic {
                 embeds = mutableListOf(embed)

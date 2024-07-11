@@ -6,12 +6,12 @@ import dev.schlaubi.lavakord.audio.Link
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.api.Queue.Companion.destroy
 import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.events.VoiceStateUpdate.Companion.destroyThread
-import kr.blugon.melodio.events.VoiceStateUpdate.Companion.playerDestroyThread
+import kr.blugon.melodio.events.VoiceStateUpdate.Companion.destoryScopeRunning
+import kr.blugon.melodio.events.VoiceStateUpdate.Companion.playerDestoryScopeRunning
 
 
 object LinkAddon {
-    val linkVolume = HashMap<Link, Int>()
+    private val linkVolume = HashMap<Link, Int>()
     var Link.volume: Int
         get() {
             if(linkVolume[this] == null) linkVolume[this] = 50
@@ -20,17 +20,8 @@ object LinkAddon {
         set(value) {
             linkVolume[this] = value
         }
-    val linkIsVolumePlay = HashMap<Link, Boolean>()
-    var Link.isVolumePlay: Boolean
-        get() {
-            if(linkIsVolumePlay[this] == null) linkIsVolumePlay[this] = false
-            return linkIsVolumePlay[this]!!
-        }
-        set(value) {
-            linkIsVolumePlay[this] = value
-        }
 
-    val eventAdded = HashMap<Snowflake, Boolean>()
+    private val eventAdded = HashMap<Snowflake, Boolean>()
     suspend fun Link.isEventAdded(): Boolean {
         if(eventAdded[this.getGuild().id] == null) eventAdded[this.getGuild().id] = false
         return eventAdded[this.getGuild().id]!!
@@ -39,7 +30,7 @@ object LinkAddon {
         eventAdded[this.getGuild().id] = value
     }
 
-    val linkRepeatMode = HashMap<Link, RepeatMode>()
+    private val linkRepeatMode = HashMap<Link, RepeatMode>()
     var Link.repeatMode: RepeatMode
         get() {
             if(linkRepeatMode[this] == null) linkRepeatMode[this] = RepeatMode.OFF
@@ -49,7 +40,7 @@ object LinkAddon {
             linkRepeatMode[this] = value
         }
 
-    val linkIsRepeatShuffle = HashMap<Link, Boolean>()
+    private val linkIsRepeatShuffle = HashMap<Link, Boolean>()
     var Link.isRepeatedShuffle: Boolean
         get() {
             if(linkIsRepeatShuffle[this] == null) linkIsRepeatShuffle[this] = false
@@ -58,7 +49,7 @@ object LinkAddon {
         set(value) {
             linkIsRepeatShuffle[this] = value
         }
-    val linkRepeatShuffleCount = HashMap<Link, Int>()
+    private val linkRepeatShuffleCount = HashMap<Link, Int>()
     var Link.repeatedShuffleCount: Int
         get() {
             if(linkRepeatShuffleCount[this] == null) linkRepeatShuffleCount[this] = 0
@@ -68,7 +59,7 @@ object LinkAddon {
             linkRepeatShuffleCount[this] = value
         }
 
-    val linkVoiceChannel = HashMap<ULong, Snowflake?>()
+    private val linkVoiceChannel = HashMap<ULong, Snowflake?>()
     var Link.voiceChannel: Snowflake?
         get() {
             if(linkVoiceChannel[this.guildId] == null) linkVoiceChannel[this.guildId] = null
@@ -79,7 +70,7 @@ object LinkAddon {
         }
 
 
-    val LinkGuild = HashMap<Link, Snowflake>()
+    private val LinkGuild = HashMap<Link, Snowflake>()
     suspend fun Link.getGuild(): Guild {
         return bot.getGuild(LinkGuild[this]!!)
     }
@@ -95,10 +86,9 @@ object LinkAddon {
         linkRepeatShuffleCount.remove(this)
         LinkGuild.remove(this)
         linkVoiceChannel.remove(this.guildId)
-        if(this.destroyThread != null) {
-            this.destroyThread!!.stopFlag = true
+        if(this.destoryScopeRunning) {
+            playerDestoryScopeRunning.remove(this.guildId)
         }
-        playerDestroyThread.remove(this.guildId)
         this.destroy()
         this.disconnectAudio()
     }

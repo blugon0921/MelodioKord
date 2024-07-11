@@ -9,6 +9,7 @@ import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.NumberOption
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Settings
@@ -35,7 +36,7 @@ class SpeedCmd: Command, OnCommand {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -51,7 +52,7 @@ class SpeedCmd: Command, OnCommand {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -71,7 +72,7 @@ class SpeedCmd: Command, OnCommand {
 
             interaction.respondPublic {
                 embed {
-                    title = "**${icon} 속도가 곧 ${speed}배로 설정됩니다**"
+                    title = "${icon} 속도가 곧 ${speed}배로 설정됩니다".bold
                     color = Settings.COLOR_NORMAL
                 }
                 components = mutableListOf(buttons)

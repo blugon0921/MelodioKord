@@ -8,6 +8,7 @@ import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.IntegerOption
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.buttons
 import kr.blugon.melodio.Modules.isSameChannel
 import kr.blugon.melodio.Settings
@@ -37,7 +38,7 @@ class RepeatCmd: Command, OnCommand {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -53,7 +54,7 @@ class RepeatCmd: Command, OnCommand {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -62,26 +63,26 @@ class RepeatCmd: Command, OnCommand {
 
             val embed = EmbedBuilder()
             val mode = interaction.command.integers["mode"]
-            when(mode) {
+            embed.title = when(mode) {
                 1L -> {
                     link.repeatMode = RepeatMode.TRACK
-                    embed.title = "**:repeat_one: 현재 노래를 반복합니다**"
+                    ":repeat_one: 현재 노래를 반복합니다".bold
                 }
                 2L -> {
                     link.repeatMode = RepeatMode.QUEUE
-                    embed.title = "**:repeat: 대기열을 반복합니다**"
+                    ":repeat: 대기열을 반복합니다".bold
                 }
                 3L -> {
                     link.repeatMode = RepeatMode.OFF
-                    embed.title = "**:arrow_right_hook: 노래 반복을 해제했습니다**"
+                    ":arrow_right_hook: 노래 반복을 해제했습니다".bold
                 }
                 else -> {
                     if(link.repeatMode == RepeatMode.OFF) {
                         link.repeatMode = RepeatMode.TRACK
-                        embed.title = "**:repeat_one: 현재 노래를 반복합니다**"
+                        ":repeat_one: 현재 노래를 반복합니다".bold
                     } else {
                         link.repeatMode = RepeatMode.OFF
-                        embed.title = "**:arrow_right_hook: 노래 반복을 해제했습니다**"
+                        ":arrow_right_hook: 노래 반복을 해제했습니다".bold
                     }
                 }
             }

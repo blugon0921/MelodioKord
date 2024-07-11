@@ -7,8 +7,9 @@ import dev.kord.core.on
 import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Modules.bold
 import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.usedUser
+import kr.blugon.melodio.Modules.interactedUser
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.api.LinkAddon.destroyPlayer
 import kr.blugon.melodio.api.LogColor
@@ -26,7 +27,7 @@ class StopBtn {
             if(voiceChannel?.channelId == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**음성 채널에 접속해있지 않습니다**"
+                        title = "음성 채널에 접속해있지 않습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -42,7 +43,7 @@ class StopBtn {
             if(current == null) {
                 interaction.respondEphemeral {
                     embed {
-                        title = "**재생중인 노래가 없습니다**"
+                        title = "재생중인 노래가 없습니다".bold
                         color = Settings.COLOR_ERROR
                     }
                 }
@@ -53,9 +54,9 @@ class StopBtn {
 
             interaction.respondPublic {
                 embed {
-                    title = "**:stop_button: 노래를 정지하고 통화방에서 퇴장했습니다**"
+                    title = ":stop_button: 노래를 정지하고 통화방에서 퇴장했습니다".bold
                     color = Settings.COLOR_NORMAL
-                    this.usedUser(interaction)
+                    this.interactedUser(interaction)
                 }
             }
         }
