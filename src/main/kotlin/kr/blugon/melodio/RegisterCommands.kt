@@ -26,7 +26,7 @@ suspend fun deployCommand(args: Array<String>) {
     rootPackage.classes<Command>("commands").forEach { clazz ->
         try {
             val instance = clazz.getDeclaredConstructor().newInstance()
-            commands.add(instance as Command)
+            commands.add(instance)
         } catch (e: Exception) {
             return@forEach
         }
