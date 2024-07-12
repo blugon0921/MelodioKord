@@ -1,18 +1,13 @@
 package kr.blugon.melodio.commands
 
-import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.rest.builder.message.EmbedBuilder
-import dev.kord.rest.builder.message.embed
 import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.IntegerOption
 import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.modules.Modules.bold
-import kr.blugon.melodio.modules.Modules.buttons
-import kr.blugon.melodio.modules.Modules.isSameChannel
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.modules.*
+import kr.blugon.melodio.modules.Modules.buttons
 
 class RepeatCmd: Command, Registable {
     override val command = "repeat"
@@ -27,32 +22,7 @@ class RepeatCmd: Command, Registable {
 
     override suspend fun register() {
         onRun(bot) {
-            if(interaction.command.rootName != command) return@onRun
-            val voiceChannel = interaction.user.getVoiceStateOrNull()
-            if(voiceChannel?.channelId == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "음성 채널에 접속해있지 않습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@onRun
-            }
-
-            val link = kord.manager.getLink(interaction.guildId.value)
-            if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
-
-
-            val current = link.queue.current
-            if(current == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "재생중인 노래가 없습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@onRun
-            }
+            val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return@onRun
 
             val embed = EmbedBuilder()
             val mode = interaction.command.integers["mode"]

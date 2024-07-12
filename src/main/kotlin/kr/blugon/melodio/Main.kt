@@ -51,6 +51,8 @@ object Main {
 }
 
 suspend fun main(args: Array<String>) {
+    //버전
+    val version = "1.1.2"
     val settingsFile = File("config.json")
     if(!settingsFile.exists()) {
         val resource = ClassLoader.getSystemClassLoader().getResource("config.json")
@@ -120,7 +122,7 @@ suspend fun main(args: Array<String>) {
 
         presence {
             status = PresenceStatus.Online
-            playing("/play | Kord")
+            playing("/play | $version")
         }
     }
 }

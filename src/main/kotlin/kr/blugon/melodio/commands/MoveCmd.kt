@@ -2,22 +2,17 @@ package kr.blugon.melodio.commands
 
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
-import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.embed
 import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.StringOption
 import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.Settings
 import kr.blugon.melodio.modules.Modules.buttons
-import kr.blugon.melodio.modules.Modules.isSameChannel
 import kr.blugon.melodio.modules.Modules.timeFormat
 import kr.blugon.melodio.modules.Modules.timeToSecond
-import kr.blugon.melodio.Settings
-import kr.blugon.melodio.modules.LogColor
 import kr.blugon.melodio.modules.Registable
-import kr.blugon.melodio.modules.logger
-import kr.blugon.melodio.modules.queue
+import kr.blugon.melodio.modules.defaultCheck
+import kr.blugon.melodio.modules.respondError
 
 class MoveCmd: Command, Registable {
     override val command = "move"
@@ -30,70 +25,34 @@ class MoveCmd: Command, Registable {
 
     override suspend fun register() {
         onRun(bot) {
-            val voiceChannel = interaction.user.getVoiceStateOrNull()
-            if(voiceChannel?.channelId == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "음성 채널에 접속해있지 않습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@onRun
-            }
+            val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return@onRun
 
-            val link = kord.manager.getLink(interaction.guildId.value)
-            if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
-
-            val player = link.player
-
-            val current = link.queue.current
-            if(current == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "재생중인 노래가 없습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@onRun
-            }
             val time = interaction.command.strings["location"]!!
 
             val ms: Long
             try {
-                ms = timeToSecond(time)*1000L
+                ms = timeToSecond(time) *1000L
             } catch (e: Exception) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "시간 형식이 잘못되었습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
+                interaction.respondError("시간 형식이 잘못되었습니다")
                 return@onRun
             }
             try {
                 if(ms >= current.info.length) player.seekTo(current.info.length-100)
                 else player.seekTo(ms)
             } catch (e: Exception) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "${timeFormat(ms/1000)} 위치로 이동할 수 없습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
+                interaction.respondError("${timeFormat(ms/1000)} 위치로 이동할 수 없습니다")
                 return@onRun
             }
 
-            val embed = EmbedBuilder().apply {
-                title = ":left_right_arrow: ${timeFormat(ms)} 위치로 이동했어요".bold
-                color = Settings.COLOR_NORMAL
-            }
-
-            if(ms >= current.info.length) {
-                embed.title = ":left_right_arrow: ${timeFormat(current.info.length)} 위치로 이동했어요".bold
-            }
 
             interaction.respondPublic {
-                embeds = mutableListOf(embed)
+                embed {
+                    title = when(!(ms >= current.info.length)) {
+                        true -> ":left_right_arrow: ${timeFormat(ms)} 위치로 이동했어요"
+                        false -> ":left_right_arrow: ${timeFormat(current.info.length)} 위치로 이동했어요"
+                    }
+                    color = Settings.COLOR_NORMAL
+                }
                 components = mutableListOf(buttons)
             }
             return@onRun

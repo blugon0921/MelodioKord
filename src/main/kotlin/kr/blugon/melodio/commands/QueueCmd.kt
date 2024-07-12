@@ -2,24 +2,16 @@ package kr.blugon.melodio.commands
 
 import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.common.entity.ButtonStyle
-import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.modules.Modules.bold
-import kr.blugon.melodio.modules.Modules.buttons
-import kr.blugon.melodio.modules.Modules.displayTitle
-import kr.blugon.melodio.modules.Modules.isSameChannel
-import kr.blugon.melodio.modules.Modules.timeFormat
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.modules.LogColor
-import kr.blugon.melodio.modules.Registable
-import kr.blugon.melodio.modules.logger
-import kr.blugon.melodio.modules.queue
+import kr.blugon.melodio.modules.*
+import kr.blugon.melodio.modules.Modules.buttons
+import kr.blugon.melodio.modules.Modules.timeFormat
 import kotlin.math.ceil
 
 class QueueCmd: Command, Registable {
@@ -29,36 +21,12 @@ class QueueCmd: Command, Registable {
 
     override suspend fun register() {
         onRun(bot) {
-            val voiceChannel = interaction.user.getVoiceStateOrNull()
-            if(voiceChannel?.channelId == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "음성 채널에 접속해있지 않습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@onRun
-            }
-
-            val link = kord.manager.getLink(interaction.guildId.value)
-            if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
-
-
-            val current = link.queue.current
-            if(current == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "재생중인 노래가 없습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@onRun
-            }
+            val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return@onRun
 
             if(link.queue.isEmpty()) {
                 interaction.respondPublic {
                     embed {
-                        title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]".bold
+                        title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]"
                         color = Settings.COLOR_NORMAL
                         description = "💿 ${current.info.displayTitle}\n"
                     }
@@ -71,7 +39,7 @@ class QueueCmd: Command, Registable {
 
             interaction.respondPublic {
                 embed {
-                    title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]".bold
+                    title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]"
                     color = Settings.COLOR_NORMAL
                     description = pages[0]
                     footer {

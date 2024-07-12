@@ -1,20 +1,13 @@
 package kr.blugon.melodio.commands
 
-import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.rest.builder.message.embed
-import dev.schlaubi.lavakord.kord.getLink
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.modules.Modules.addThisButtons
-import kr.blugon.melodio.modules.Modules.bold
-import kr.blugon.melodio.modules.Modules.box
-import kr.blugon.melodio.modules.Modules.displayTitle
-import kr.blugon.melodio.modules.Modules.isSameChannel
-import kr.blugon.melodio.modules.Modules.timeFormat
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.modules.*
+import kr.blugon.melodio.modules.Modules.addThisButtons
+import kr.blugon.melodio.modules.Modules.timeFormat
 import kotlin.math.floor
 
 class NowCmd: Command, Registable {
@@ -24,37 +17,11 @@ class NowCmd: Command, Registable {
 
     override suspend fun register() {
         onRun(bot) {
-            val voiceChannel = interaction.user.getVoiceStateOrNull()
-            if(voiceChannel?.channelId == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "음성 채널에 접속해있지 않습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@onRun
-            }
-
-            val link = kord.manager.getLink(interaction.guildId)
-
-            if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
-
-            val player = link.player
-
-            val current = link.queue.current
-            if(current == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "재생중인 노래가 없습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@onRun
-            }
+            val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return@onRun
 
             interaction.respondPublic {
                 embed {
-                    title = ":musical_note: 현재 재생중인 노래".bold
+                    title = ":musical_note: 현재 재생중인 노래"
                     description = current.info.displayTitle
                     image = current.info.artworkUrl
                     color = Settings.COLOR_NORMAL

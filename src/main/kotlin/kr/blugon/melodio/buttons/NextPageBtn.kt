@@ -2,24 +2,19 @@ package kr.blugon.melodio.buttons
 
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.core.behavior.edit
-import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.modules.Modules.bold
-import kr.blugon.melodio.modules.Modules.buttons
-import kr.blugon.melodio.modules.Modules.isSameChannel
-import kr.blugon.melodio.modules.Modules.timeFormat
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.modules.LogColor
-import kr.blugon.melodio.modules.Button
-import kr.blugon.melodio.modules.logger
-import kr.blugon.melodio.modules.queue
 import kr.blugon.melodio.commands.queuePage
+import kr.blugon.melodio.modules.Button
+import kr.blugon.melodio.modules.Modules.buttons
+import kr.blugon.melodio.modules.Modules.timeFormat
+import kr.blugon.melodio.modules.defaultCheck
+import kr.blugon.melodio.modules.queue
 
 class NextPageBtn: Button {
     override val name = "nextPage"
@@ -27,31 +22,7 @@ class NextPageBtn: Button {
     override suspend fun register() {
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
-            val voiceChannel = interaction.user.getVoiceStateOrNull()
-            if(voiceChannel?.channelId == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "음성 채널에 접속해있지 않습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@on
-            }
-
-            val link = kord.manager.getLink(interaction.guildId.value)
-            if(!link.isSameChannel(interaction, voiceChannel)) return@on
-
-
-            val current = link.queue.current
-            if(current == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "재생중인 노래가 없습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@on
-            }
+            val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return@on
 
             val beforePageButton = ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "beforePage").apply {
                 this.label = "◀이전"
@@ -87,7 +58,7 @@ class NextPageBtn: Button {
             interaction.deferPublicMessageUpdate()
             interaction.message.edit {
                 embed {
-                    title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]".bold
+                    title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]"
                     color = Settings.COLOR_NORMAL
                     description = pages[nowPage-1]
                     footer {

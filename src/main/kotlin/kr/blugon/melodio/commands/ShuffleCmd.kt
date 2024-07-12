@@ -6,12 +6,9 @@ import dev.kord.rest.builder.message.embed
 import kr.blugon.kordmand.BooleanOption
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.modules.Modules.bold
-import kr.blugon.melodio.modules.Modules.buttons
-import kr.blugon.melodio.modules.Modules.isSameChannel
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.modules.*
+import kr.blugon.melodio.modules.Modules.buttons
 
 class ShuffleCmd: Command, Registable {
     override val command = "shuffle"
@@ -22,40 +19,10 @@ class ShuffleCmd: Command, Registable {
 
     override suspend fun register() {
         onRun(bot) {
-            if(interaction.command.rootName != command) return@onRun
-            val voiceChannel = interaction.user.getVoiceStateOrNull()
-            if(voiceChannel?.channelId == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "음성 채널에 접속해있지 않습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@onRun
-            }
-
-            val link = kord.manager.getLink(interaction.guildId.value)
-            if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
-
-
-            val current = link.queue.current
-            if(current == null) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "재생중인 노래가 없습니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
-                return@onRun
-            }
+            val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return@onRun
 
             if(link.queue.size < 2) {
-                interaction.respondEphemeral {
-                    embed {
-                        title = "대기열에 노래가 2개 이상이어야 합니다".bold
-                        color = Settings.COLOR_ERROR
-                    }
-                }
+                interaction.respondError("대기열에 노래가 2개 이상이어야 합니다")
                 return@onRun
             }
 
@@ -64,7 +31,7 @@ class ShuffleCmd: Command, Registable {
                 link.queue.shuffle()
                 interaction.respondPublic {
                     embed {
-                        title = ":twisted_rightwards_arrows: 대기열 순서를 섞었습니다".bold
+                        title = ":twisted_rightwards_arrows: 대기열 순서를 섞었습니다"
                         color = Settings.COLOR_NORMAL
                     }
                     components = mutableListOf(buttons)
@@ -75,7 +42,7 @@ class ShuffleCmd: Command, Registable {
                     link.repeatedShuffleCount = 0
                     interaction.respondPublic {
                         embed {
-                            title = ":arrow_right: 대기열 순서 섞기 반복을 해제했습니다".bold
+                            title = ":arrow_right: 대기열 순서 섞기 반복을 해제했습니다"
                             color = Settings.COLOR_NORMAL
                         }
                         components = mutableListOf(buttons)
@@ -83,12 +50,7 @@ class ShuffleCmd: Command, Registable {
                     return@onRun
                 }
                 if(link.repeatMode != RepeatMode.QUEUE) {
-                    interaction.respondEphemeral {
-                        embed {
-                            title = "대기열을 반복 중이어야 합니다".bold
-                            color = Settings.COLOR_ERROR
-                        }
-                    }
+                    interaction.respondError("대기열을 반복 중이어야 합니다")
                     return@onRun
                 }
                 link.queue.shuffle()
