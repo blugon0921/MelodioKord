@@ -10,11 +10,9 @@ import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.commands.queuePage
-import kr.blugon.melodio.modules.Button
+import kr.blugon.melodio.modules.*
 import kr.blugon.melodio.modules.Modules.buttons
 import kr.blugon.melodio.modules.Modules.timeFormat
-import kr.blugon.melodio.modules.defaultCheck
-import kr.blugon.melodio.modules.queue
 
 class ReloadPageBtn: Button {
     override val name = "reloadPage"
@@ -34,9 +32,8 @@ class ReloadPageBtn: Button {
                 this.label = "🔄️새로고침"
             }
 
-            var footerText = if(interaction.message.embeds[0].footer == null) "undefined"
-                            else interaction.message.embeds[0].footer!!.text.replace(" ", "")
-            if(footerText.contains("|")) footerText = footerText.split("|")[1]
+            val footerText = (if(interaction.message.embeds[0].footer == null) "undefined"
+                            else interaction.message.embeds[0].footer!!.text.replace(" ", "")).split("|").last().split("┃").first()
             var nowPage = footerText.split("/")[0].replace("페이지", "").toInt()
             val pages = queuePage(link, current)
 
@@ -62,7 +59,13 @@ class ReloadPageBtn: Button {
                     color = Settings.COLOR_NORMAL
                     description = pages[nowPage-1]
                     footer {
-                        text = "${interaction.user.globalName?: interaction.user.username} | 페이지 ${nowPage}/${pages.size}"
+                        text = "${interaction.user.globalName?: interaction.user.username} | 페이지 ${nowPage}/${pages.size}${
+                            when(link.repeatMode) {
+                                RepeatMode.TRACK -> "┃🔂 현재 곡 반복중"
+                                RepeatMode.QUEUE -> "┃🔂 대기열 반복중"
+                                else -> ""
+                            }
+                        }"
                         this.icon = if(interaction.user.avatar == null) interaction.user.defaultAvatar.cdnUrl.toUrl()
                         else interaction.user.avatar!!.cdnUrl.toUrl()
                     }

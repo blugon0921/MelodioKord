@@ -80,6 +80,7 @@ class PlayCmd: Command, Registable {
     }
 
     fun getAutoCompletes(search: String): List<String> {
+        if(100 < URLEncoder.encode(search, Charsets.UTF_8).length) return listOf()
         val url = "https://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=${URLEncoder.encode(search, Charsets.UTF_8)}"
         return arrayListOf<String>().apply {
             val data = request(url)

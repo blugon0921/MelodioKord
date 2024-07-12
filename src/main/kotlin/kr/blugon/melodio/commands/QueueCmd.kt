@@ -43,7 +43,13 @@ class QueueCmd: Command, Registable {
                     color = Settings.COLOR_NORMAL
                     description = pages[0]
                     footer {
-                        text = "페이지 1/${pages.size}"
+                        text = "페이지 1/${pages.size}${
+                            when(link.repeatMode) {
+                                RepeatMode.TRACK -> "┃🔂 현재 곡 반복중"
+                                RepeatMode.QUEUE -> "┃🔂 대기열 반복중"
+                                else -> ""
+                            }
+                        }"
                     }
                 }
                 components = mutableListOf(ActionRowBuilder().apply {
@@ -81,8 +87,6 @@ fun queuePage(link: Link, current: Track, itemCountInPage: Int = 20): List<Strin
             if(0 < link.queue.size-count) {
                 pageDescription += "\n"+"+${link.queue.size-count}개".bold
             }
-            if(link.repeatMode == RepeatMode.TRACK) pageDescription = "$pageDescription\n${"🔂 현재 곡 반복중".bold}"
-            if(link.repeatMode == RepeatMode.QUEUE) pageDescription = "$pageDescription\n${"🔂 대기열 반복중".bold}"
             page.add(pageDescription)
         }
     } else { //1페이지
@@ -90,8 +94,6 @@ fun queuePage(link: Link, current: Track, itemCountInPage: Int = 20): List<Strin
         for(i in 0 until link.queue.size) {
             description += "${"${i+1}.".bold}ﾠ${link.queue[i].track.info.displayTitle}\n"
         }
-        if(link.repeatMode == RepeatMode.TRACK) description = "$description\n${"🔂 현재 곡 반복중".bold}"
-        if(link.repeatMode == RepeatMode.QUEUE) description = "$description\n${"🔂 대기열 반복중".bold}"
         page.add(description)
     }
     return page
