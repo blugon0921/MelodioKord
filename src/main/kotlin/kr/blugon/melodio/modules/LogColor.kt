@@ -1,7 +1,7 @@
-package kr.blugon.melodio.api
+package kr.blugon.melodio.modules
 
-import kr.blugon.melodio.Modules.nowDate
-import kr.blugon.melodio.api.LogColor.Companion.color
+import kr.blugon.melodio.modules.Modules.nowDate
+import kr.blugon.melodio.modules.LogColor.Companion.color
 
 
 val logger = Logger()

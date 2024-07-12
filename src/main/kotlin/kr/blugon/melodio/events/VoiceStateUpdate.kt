@@ -3,22 +3,16 @@ package kr.blugon.melodio.events
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.entity.Member
 import dev.kord.core.event.user.VoiceStateUpdateEvent
-import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.schlaubi.lavakord.audio.Link
 import kotlinx.coroutines.*
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.api.LinkAddon.destroyPlayer
-import kr.blugon.melodio.api.LinkAddon.voiceChannel
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.modules.*
 
 @OptIn(DelicateCoroutinesApi::class)
-class VoiceStateUpdate {
-    val name = "voiceStateUpdate"
+class VoiceStateUpdate: Event {
+    override val name = "voiceStateUpdate"
 
     companion object {
         val playerDestoryScopeRunning = HashMap<ULong, Boolean>()
@@ -32,10 +26,8 @@ class VoiceStateUpdate {
             }
     }
 
-    init {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.BLUE.inColor(name)} 이벤트 불러오기 성공")
+    override suspend fun register() {
         bot.on<VoiceStateUpdateEvent> {
-            val guild = state.getGuild()
             val link = bot.manager.getLink(state.guildId.value)
 
             if(old == null) return@on

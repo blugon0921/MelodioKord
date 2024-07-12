@@ -6,22 +6,17 @@ import dev.kord.rest.builder.message.embed
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.isSameChannel
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.isSameChannel
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LinkAddon.destroyPlayer
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.OnCommand
-import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.modules.*
 
-class StopCmd: Command, OnCommand {
+class StopCmd: Command, Registable {
     override val command = "stop"
     override val description = "노래를 정지하고 통화방에서 퇴장합니다"
     override val options = null
 
-    override fun on() {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
+    override suspend fun register() {
         onRun(bot) {
             if(interaction.command.rootName != command) return@onRun
             val voiceChannel = interaction.user.getVoiceStateOrNull()
@@ -38,7 +33,6 @@ class StopCmd: Command, OnCommand {
             val link = kord.manager.getLink(interaction.guildId.value)
             if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
 
-            val player = link.player
 
             if(link.queue.current == null) {
                 interaction.respondEphemeral {

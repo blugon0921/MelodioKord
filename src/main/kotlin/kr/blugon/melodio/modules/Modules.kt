@@ -1,4 +1,4 @@
-package kr.blugon.melodio
+package kr.blugon.melodio.modules
 
 import dev.arbjerg.lavalink.protocol.v4.TrackInfo
 import dev.kord.common.entity.ButtonStyle
@@ -13,20 +13,17 @@ import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
-import kr.blugon.melodio.api.LinkAddon.voiceChannel
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.Companion.color
-import kr.blugon.melodio.api.TrackSourceType
-import kr.blugon.melodio.api.sourceType
+import kr.blugon.melodio.Settings
+import kr.blugon.melodio.modules.LogColor.Companion.color
 import mu.KLogger
-import org.json.JSONObject
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.floor
 import kotlin.time.Duration
 
-fun JSONObject.getStringOrNull(key: String): String? = if(has(key)) getString(key) else null
 object Modules {
+    const val DEFAULT_VOLUME = 50
+
     fun stringLimit(text: String, len: Int = 30, lastText: String = "..."): String {
         return if(text.length > len) text.substring(0..len)+lastText
         else text
@@ -34,7 +31,7 @@ object Modules {
 
     fun nowDate(): String {
         val today = Date()
-        val currentLocale = Locale("KOREAN", "KOREA")
+        val currentLocale = Locale.KOREA
         val pattern = "yyyy. MM. dd. HH:mm:ss" //hhmmss로 시간,분,초만 뽑기도 가능
         val formatter = SimpleDateFormat(
             pattern,

@@ -10,21 +10,21 @@ import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.buttons
-import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.timeFormat
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.buttons
+import kr.blugon.melodio.modules.Modules.isSameChannel
+import kr.blugon.melodio.modules.Modules.timeFormat
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.logger
-import kr.blugon.melodio.commands.QueueCmd.Companion.queuePage
+import kr.blugon.melodio.modules.LogColor
+import kr.blugon.melodio.modules.Button
+import kr.blugon.melodio.modules.logger
+import kr.blugon.melodio.modules.queue
+import kr.blugon.melodio.commands.queuePage
 
-class ReloadPageBtn {
-    val name = "reloadPage"
+class ReloadPageBtn: Button {
+    override val name = "reloadPage"
 
-    init {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
+    override suspend fun register() {
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
             val voiceChannel = interaction.user.getVoiceStateOrNull()
@@ -41,7 +41,6 @@ class ReloadPageBtn {
             val link = kord.manager.getLink(interaction.guildId.value)
             if(!link.isSameChannel(interaction, voiceChannel)) return@on
 
-            val player = link.player
 
             val current = link.queue.current
             if(current == null) {

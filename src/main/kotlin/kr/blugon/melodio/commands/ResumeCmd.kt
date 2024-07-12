@@ -6,24 +6,22 @@ import dev.kord.rest.builder.message.embed
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.buttons
-import kr.blugon.melodio.Modules.displayTitle
-import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.stringLimit
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.buttons
+import kr.blugon.melodio.modules.Modules.displayTitle
+import kr.blugon.melodio.modules.Modules.isSameChannel
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.OnCommand
-import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.modules.LogColor
+import kr.blugon.melodio.modules.Registable
+import kr.blugon.melodio.modules.logger
+import kr.blugon.melodio.modules.queue
 
-class ResumeCmd: Command, OnCommand {
+class ResumeCmd: Command, Registable {
     override val command = "resume"
     override val description = "노래 일시정지를 해제합니다"
     override val options = null
 
-    override fun on() {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
+    override suspend fun register() {
         onRun(bot) {
             if(interaction.command.rootName != command) return@onRun
             val voiceChannel = interaction.user.getVoiceStateOrNull()

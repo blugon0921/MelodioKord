@@ -8,18 +8,13 @@ import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.IntegerOption
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.buttons
-import kr.blugon.melodio.Modules.isSameChannel
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.buttons
+import kr.blugon.melodio.modules.Modules.isSameChannel
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LinkAddon.repeatMode
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.OnCommand
-import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.RepeatMode
-import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.modules.*
 
-class RepeatCmd: Command, OnCommand {
+class RepeatCmd: Command, Registable {
     override val command = "repeat"
     override val description = "대기열 혹은 노래를 반복합니다"
     override val options = listOf(
@@ -30,8 +25,7 @@ class RepeatCmd: Command, OnCommand {
         }
     )
 
-    override fun on() {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
+    override suspend fun register() {
         onRun(bot) {
             if(interaction.command.rootName != command) return@onRun
             val voiceChannel = interaction.user.getVoiceStateOrNull()
@@ -48,7 +42,6 @@ class RepeatCmd: Command, OnCommand {
             val link = kord.manager.getLink(interaction.guildId.value)
             if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
 
-            val player = link.player
 
             val current = link.queue.current
             if(current == null) {

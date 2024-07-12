@@ -1,21 +1,20 @@
 package kr.blugon.melodio.events
 
 import dev.kord.core.event.guild.GuildCreateEvent
-import dev.kord.core.kordLogger
 import dev.kord.core.on
 import kotlinx.coroutines.flow.toList
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.isReady
-import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.Companion.color
-import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.modules.Event
+import kr.blugon.melodio.modules.LogColor
+import kr.blugon.melodio.modules.LogColor.Companion.color
+import kr.blugon.melodio.modules.Registable
+import kr.blugon.melodio.modules.logger
 
-class JoinGuild {
-    val name = "joinGuild"
+class JoinGuild: Event {
+    override val name = "joinGuild"
 
-    init {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.BLUE.inColor(name)} 이벤트 불러오기 성공")
+    override suspend fun register() {
         bot.on<GuildCreateEvent> {
             if(!bot.isReady) return@on
             logger.log("${LogColor.CYAN.inColor("✔")} ${guild.name.color(LogColor.BLUE)}서버에 접속했어요")

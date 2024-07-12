@@ -2,13 +2,11 @@ package kr.blugon.melodio
 
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.Kord
-import dev.kord.core.kordLogger
 import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.Command.Companion.registerGlobalCommand
 import kr.blugon.kordmand.Command.Companion.registerGuildCommand
-import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.modules.LogColor
+import kr.blugon.melodio.modules.logger
 
 suspend fun main(args: Array<String>) {
     val bot = if (args[0] == "test") Kord(Settings.TEST_TOKEN)
@@ -17,7 +15,7 @@ suspend fun main(args: Array<String>) {
     val rootPackage = Main.javaClass.`package`
 
     val commands = ArrayList<Command>()
-    rootPackage.classes("commands").forEach { clazz ->
+    rootPackage.classes<Command>("commands").forEach { clazz ->
         try {
             val instance = clazz.getDeclaredConstructor().newInstance()
             commands.add((instance as Command))

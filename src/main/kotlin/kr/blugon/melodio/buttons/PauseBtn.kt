@@ -8,21 +8,21 @@ import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.buttons
-import kr.blugon.melodio.Modules.displayTitle
-import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.interactedUser
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.buttons
+import kr.blugon.melodio.modules.Modules.displayTitle
+import kr.blugon.melodio.modules.Modules.isSameChannel
+import kr.blugon.melodio.modules.Modules.interactedUser
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.modules.LogColor
+import kr.blugon.melodio.modules.Button
+import kr.blugon.melodio.modules.logger
+import kr.blugon.melodio.modules.queue
 
-class PauseBtn {
-    val name = "pauseButton"
+class PauseBtn: Button {
+    override val name = "pauseButton"
 
-    init {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
+    override suspend fun register() {
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
             val voiceChannel = interaction.user.getVoiceStateOrNull()

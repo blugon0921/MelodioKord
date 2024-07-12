@@ -9,33 +9,23 @@ import dev.kord.core.on
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
 import dev.schlaubi.lavakord.kord.connectAudio
+import dev.schlaubi.lavakord.plugins.lavasrc.lavaSrcInfo
 import dev.schlaubi.lavakord.rest.loadItem
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules
-import kr.blugon.melodio.Modules.addThisButtons
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.box
-import kr.blugon.melodio.Modules.displayTitle
-import kr.blugon.melodio.Modules.hyperlink
-import kr.blugon.melodio.Modules.timeFormat
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LinkAddon.volume
-import kr.blugon.melodio.api.LinkAddon.voiceChannel
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.Queue.Companion.addEvent
-import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.TrackSourceType
-import kr.blugon.melodio.api.logger
-import kr.blugon.melodio.api.sourceType
-import kr.blugon.melodio.getStringOrNull
-import org.json.JSONObject
+import kr.blugon.melodio.modules.*
+import kr.blugon.melodio.modules.Modules.addThisButtons
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.box
+import kr.blugon.melodio.modules.Modules.displayTitle
+import kr.blugon.melodio.modules.Modules.hyperlink
+import kr.blugon.melodio.modules.Modules.timeFormat
 
-class AddThisBtn {
-    val name = "addThisButton"
+class AddThisBtn: Button {
+    override val name = "addThisButton"
 
-    init {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
+    override suspend fun register() {
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
             val voiceChannel = interaction.user.getVoiceStateOrNull()
@@ -50,7 +40,10 @@ class AddThisBtn {
             }
 
             val link = kord.manager.getLink(interaction.guildId.value)
-            if(link.voiceChannel == null) link.voiceChannel = voiceChannel.channelId
+            if(link.voiceChannel == null) {
+                link.voiceChannel = voiceChannel.channelId
+                link.addEvent()
+            }
             if(link.state == Link.State.CONNECTED || link.state == Link.State.CONNECTING) { //이미 연결 되어 있으면
                 if(voiceChannel.channelId != link.voiceChannel) {
                     interaction.respondEphemeral {
@@ -63,7 +56,6 @@ class AddThisBtn {
                 }
             }
 
-            val player = link.player
             var url = interaction.message.embeds[0].description!!
             var urlStart = 0
             for(i in 7 until url.length) {
@@ -78,7 +70,6 @@ class AddThisBtn {
                 false -> url.substring(urlStart, url.length-20) // by Now command
             }
             val response = interaction.deferPublicResponse()
-            link.addEvent()
 
             val item = link.loadItem(url)
             if(item.loadType != ResultStatus.NONE && item.loadType != ResultStatus.ERROR) {
@@ -89,9 +80,7 @@ class AddThisBtn {
             when(item) {
                 is LoadResult.TrackLoaded -> {
                     val track = item.data
-                    link.queue.add(track) {
-                        this.volume = link.volume
-                    }
+                    link.queue.add(track)
                     response.respond {
                         embed {
                             title = ":musical_note: 대기열에 노래를 추가하였습니다".bold
@@ -116,19 +105,16 @@ class AddThisBtn {
                 }
                 is LoadResult.PlaylistLoaded -> {
                     val playlist = item.data
-                    link.queue.add(playlist.tracks) {
-                        this.volume = link.volume
-                    }
-                    val pluginInfo = JSONObject(playlist.pluginInfo.toString())
+                    link.queue.add(playlist.tracks)
                     response.respond {
                         embed {
                             title = ":musical_note: 대기열에 재생목록을 추가하였습니다".bold
-                            description = playlist.info.name.hyperlink(pluginInfo.getStringOrNull("url")?: url)
-                            image = pluginInfo.getStringOrNull("artworkUrl")?: playlist.tracks[0].info.artworkUrl
+                            description = playlist.info.name.hyperlink(playlist.lavaSrcInfo.url?: url)
+                            image = playlist.lavaSrcInfo.artworkUrl?: playlist.tracks[0].info.artworkUrl
                             color = Settings.COLOR_NORMAL
                             field {
                                 name = "재생목록 제작자".bold
-                                value = pluginInfo.getStringOrNull("author")?.box?.bold?: "Unknown"
+                                value = (playlist.lavaSrcInfo.author?: "Unknown").box.bold
                                 inline = true
                             }
                             field {
@@ -151,9 +137,7 @@ class AddThisBtn {
                 }
                 is LoadResult.SearchResult -> { //검색
                     val track = item.data.tracks[0]
-                    link.queue.add(track) {
-                        this.volume = link.volume
-                    }
+                    link.queue.add(track)
                     response.respond {
                         embed {
                             title = ":musical_note: 대기열에 노래를 추가하였습니다".bold

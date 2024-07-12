@@ -8,31 +8,21 @@ import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.IntegerOption
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.buttons
-import kr.blugon.melodio.Modules.displayTitle
-import kr.blugon.melodio.Modules.hyperlink
-import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.stringLimit
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.buttons
+import kr.blugon.melodio.modules.Modules.displayTitle
+import kr.blugon.melodio.modules.Modules.isSameChannel
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.*
-import kr.blugon.melodio.api.LinkAddon.destroyPlayer
-import kr.blugon.melodio.api.LinkAddon.isRepeatedShuffle
-import kr.blugon.melodio.api.LinkAddon.repeatMode
-import kr.blugon.melodio.api.LinkAddon.repeatedShuffleCount
-import kr.blugon.melodio.api.LinkAddon.volume
-import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.Queue.Companion.skip
+import kr.blugon.melodio.modules.*
 
-class SkipCmd: Command, OnCommand {
+class SkipCmd: Command, Registable {
     override val command = "skip"
     override val description = "노래를 건너뜁니다"
     override val options = listOf(
         IntegerOption("count", "건너뛸 개수를 입력해 주세요", 1, 50)
     )
 
-    override fun on() {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
+    override suspend fun register() {
         onRun(bot) {
             if(interaction.command.rootName != command) return@onRun
             val voiceChannel = interaction.user.getVoiceStateOrNull()
@@ -49,7 +39,6 @@ class SkipCmd: Command, OnCommand {
             val link = kord.manager.getLink(interaction.guildId.value)
             if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
 
-            val player = link.player
 
             val current = link.queue.current
             if(current == null) {
@@ -67,7 +56,7 @@ class SkipCmd: Command, OnCommand {
                     embed {
                         title = ":track_next: 노래 1개를 건너뛰었습니다".bold
                         description = """
-                            [${stringLimit(current.info.title.replace("[", "［").replace("]", "［"))}](${current.info.uri})
+                            ${current.info.displayTitle}
                             
                             
                             곡 없음
@@ -89,7 +78,7 @@ class SkipCmd: Command, OnCommand {
             //만약 대기열 반복중이면
             if(link.repeatMode == RepeatMode.QUEUE) {
                 //스킵한 개수만큼 대기열에 다시 추가
-                link.queue.add(current) { volume = link.volume }
+                link.queue.add(current)
                 if(1 < count) {
                     for(i in 0 until count-1) {
                         link.queue.add(link.queue[i].track) {

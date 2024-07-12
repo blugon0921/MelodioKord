@@ -4,29 +4,27 @@ import dev.kord.common.entity.ButtonStyle
 import dev.kord.core.behavior.edit
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
-import dev.kord.core.kordLogger
 import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.buttons
-import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.Modules.timeFormat
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.buttons
+import kr.blugon.melodio.modules.Modules.isSameChannel
+import kr.blugon.melodio.modules.Modules.timeFormat
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.logger
-import kr.blugon.melodio.commands.QueueCmd.Companion.queuePage
+import kr.blugon.melodio.modules.LogColor
+import kr.blugon.melodio.modules.Button
+import kr.blugon.melodio.modules.logger
+import kr.blugon.melodio.modules.queue
+import kr.blugon.melodio.commands.queuePage
 
-class BeforePageBtn {
-    val name = "beforePage"
+class BeforePageBtn: Button {
+    override val name = "beforePage"
 
-    init {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
+    override suspend fun register() {
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
             val voiceChannel = interaction.user.getVoiceStateOrNull()
@@ -43,7 +41,6 @@ class BeforePageBtn {
             val link = kord.manager.getLink(interaction.guildId.value)
             if(!link.isSameChannel(interaction, voiceChannel)) return@on
 
-            val player = link.player
 
             val current = link.queue.current
             if(current == null) {
@@ -74,6 +71,10 @@ class BeforePageBtn {
 
             if(nowPage <= 1) {
                 nowPage = 1
+                beforePageButton.disabled = true
+            }
+            if(pages.size <= 1) {
+                nextPageButton.disabled = true
                 beforePageButton.disabled = true
             }
 

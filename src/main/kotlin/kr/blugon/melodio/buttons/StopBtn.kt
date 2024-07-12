@@ -7,20 +7,16 @@ import dev.kord.core.on
 import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.interactedUser
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.interactedUser
+import kr.blugon.melodio.modules.Modules.isSameChannel
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.LinkAddon.destroyPlayer
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.Queue.Companion.queue
-import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.modules.*
 
-class StopBtn {
-    val name = "stopButton"
+class StopBtn: Button {
+    override val name = "stopButton"
 
-    init {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(name)} 버튼 불러오기 성공")
+    override suspend fun register() {
         bot.on<GuildButtonInteractionCreateEvent> {
             if(interaction.component.customId != name) return@on
             val voiceChannel = interaction.user.getVoiceStateOrNull()
@@ -37,7 +33,6 @@ class StopBtn {
             val link = kord.manager.getLink(interaction.guildId.value)
             if(!link.isSameChannel(interaction, voiceChannel)) return@on
 
-            val player = link.player
 
             val current = link.queue.current
             if(current == null) {

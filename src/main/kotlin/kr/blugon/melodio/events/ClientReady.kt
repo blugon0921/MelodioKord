@@ -1,21 +1,20 @@
 package kr.blugon.melodio.events
 
 import dev.kord.core.event.gateway.ReadyEvent
-import dev.kord.core.kordLogger
 import dev.kord.core.on
 import kotlinx.coroutines.flow.toList
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.isReady
-import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.api.LogColor
-import kr.blugon.melodio.api.LogColor.Companion.color
-import kr.blugon.melodio.api.logger
+import kr.blugon.melodio.modules.Event
+import kr.blugon.melodio.modules.LogColor
+import kr.blugon.melodio.modules.LogColor.Companion.color
+import kr.blugon.melodio.modules.Registable
+import kr.blugon.melodio.modules.logger
 
-class ClientReady {
-    val name = "clientReady"
+class ClientReady: Event {
+    override val name = "clientReady"
 
-    init {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.BLUE.inColor(name)} 이벤트 불러오기 성공")
+    override suspend fun register() {
         bot.on<ReadyEvent> {
             logger.log("")
             logger.log("접속 서버(${bot.guilds.toList().size})".color(LogColor.CYAN))

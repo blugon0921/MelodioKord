@@ -6,13 +6,12 @@ import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
 import dev.schlaubi.lavakord.LavaKord
 import dev.schlaubi.lavakord.kord.lavakord
+import io.github.classgraph.ClassGraph
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.isTest
-import kr.blugon.melodio.Main.lavalink
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.api.OnCommand
-import java.io.File
+import kr.blugon.melodio.modules.*
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -47,11 +46,10 @@ object Main {
 
 suspend fun main(args: Array<String>) {
     bot = Kord(
-        if (args[0] == "test") Settings.TEST_TOKEN
+        if (args.getOrNull(0) == "test") Settings.TEST_TOKEN
         else Settings.TOKEN
     )
-    bot.isTest = args[0] == "test"
-    bot.manager = bot.lavakord()
+    bot.isTest = args.getOrNull(0) == "test"
 
     bot.manager = bot.lavakord {
         link {
@@ -64,15 +62,22 @@ suspend fun main(args: Array<String>) {
     val rootPackage = Main.javaClass.`package`
 
     //Commands
-    rootPackage.classesRunnable("commands").forEach {
-        (it as OnCommand).on()
+    rootPackage.classesRegistable<Registable>("commands").forEach {
+        if(it is Command) logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(it.command)} 커맨드 불러오기 성공")
+        it.register()
     }
 
     //Events
-    rootPackage.classesRunnable("events")
+    rootPackage.classesRegistable<Event>("events").forEach {
+        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.BLUE.inColor(it.name)} 이벤트 불러오기 성공")
+        it.register()
+    }
 
     //Buttons
-    rootPackage.classesRunnable("buttons")
+    rootPackage.classesRegistable<Button>("buttons").forEach {
+        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(it.name)} 버튼 불러오기 성공")
+        it.register()
+    }
 
     @OptIn(PrivilegedIntent::class)
     bot.login {
@@ -90,45 +95,32 @@ suspend fun main(args: Array<String>) {
 }
 
 
-fun Package.classes(more: String = ""): ArrayList<Class<*>> {
-    val classes = ArrayList<Class<*>>()
-    var directory: File? = null
+inline fun <reified T> Package.classes(more: String = ""): List<Class<T>> {
+    val classes = ArrayList<Class<T>>()
     val packageName = if(more == "") name
-                      else "${name}.${more}"
+                      else "$name.$more"
 
-    directory = try {
-//        val classLoader = Thread.currentThread().getContextClassLoader()?: throw ClassNotFoundException("Can't get class loader.")
-        val classLoader = Main.javaClass.classLoader?: throw ClassNotFoundException("Can't get class loader.")
-        val path: String = packageName.replace('.', '/')
-        val resource = classLoader.getResource(path) ?: throw ClassNotFoundException("No resource for $path")
-//        println(resource.file.replace(".jar", "").replace("!", "").replace("file:/", "/"))
-        File(resource.file.replace(".jar", "").replace("!", "").replace("file:/", "/"))
-    } catch (_: NullPointerException) {
-        throw ClassNotFoundException("$packageName ($directory) does not appear to be a valid package")
-    }
-
-    if (directory!!.exists()) {
-        val files = directory.list()
-        for (i in files!!.indices) {
-            if (files[i].endsWith(".class")) {
-                classes.add(Class.forName(("$packageName.").toString() + files[i].substring(0, files[i].length - 6)))
-            }
-        }
-    } else {
-        throw ClassNotFoundException("$packageName does not appear to be a valid package")
+    val scanResult = ClassGraph().acceptPackages(packageName).scan()
+    scanResult.allClasses.names.forEach {
+        classes.add(ClassLoader.getSystemClassLoader().loadClass(it) as Class<T>)
     }
     return classes
 }
 
-fun Package.classesRunnable(more: String = ""): ArrayList<Any> {
-    val runnables = ArrayList<Any>()
-    this.classes(more).forEach { clazz ->
+inline fun <reified T> Package.classesRegistable(more: String = ""): List<T> {
+    val registable = ArrayList<T>()
+
+    var name = "${this.name}.${more}"
+    if(!name.startsWith("/")) name = "/$name"
+    name.replace(".", "/")
+
+    this.classes<T>(more).forEach { clazz ->
         try {
             val instance = clazz.getDeclaredConstructor().newInstance()
-            runnables.add(instance as Any)
+            registable.add(instance as T)
         } catch (e: Exception) {
             return@forEach
         }
     }
-    return runnables
+    return registable
 }

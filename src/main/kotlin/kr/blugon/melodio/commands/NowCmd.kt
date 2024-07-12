@@ -2,31 +2,27 @@ package kr.blugon.melodio.commands
 
 import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
-import dev.kord.core.kordLogger
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.kord.getLink
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.addThisButtons
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.box
-import kr.blugon.melodio.Modules.displayTitle
-import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.log
-import kr.blugon.melodio.Modules.timeFormat
+import kr.blugon.melodio.modules.Modules.addThisButtons
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.box
+import kr.blugon.melodio.modules.Modules.displayTitle
+import kr.blugon.melodio.modules.Modules.isSameChannel
+import kr.blugon.melodio.modules.Modules.timeFormat
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.*
-import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.modules.*
 import kotlin.math.floor
 
-class NowCmd: Command, OnCommand {
+class NowCmd: Command, Registable {
     override val command = "now"
     override val description = "현재 재생중인 노래를 알려줍니다"
     override val options = null
 
-    override fun on() {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
+    override suspend fun register() {
         onRun(bot) {
             val voiceChannel = interaction.user.getVoiceStateOrNull()
             if(voiceChannel?.channelId == null) {

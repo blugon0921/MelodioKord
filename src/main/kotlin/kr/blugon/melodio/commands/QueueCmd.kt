@@ -10,23 +10,24 @@ import dev.schlaubi.lavakord.audio.Link
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Modules.bold
-import kr.blugon.melodio.Modules.buttons
-import kr.blugon.melodio.Modules.displayTitle
-import kr.blugon.melodio.Modules.isSameChannel
-import kr.blugon.melodio.Modules.timeFormat
+import kr.blugon.melodio.modules.Modules.bold
+import kr.blugon.melodio.modules.Modules.buttons
+import kr.blugon.melodio.modules.Modules.displayTitle
+import kr.blugon.melodio.modules.Modules.isSameChannel
+import kr.blugon.melodio.modules.Modules.timeFormat
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.api.*
-import kr.blugon.melodio.api.Queue.Companion.queue
+import kr.blugon.melodio.modules.LogColor
+import kr.blugon.melodio.modules.Registable
+import kr.blugon.melodio.modules.logger
+import kr.blugon.melodio.modules.queue
 import kotlin.math.ceil
 
-class QueueCmd: Command, OnCommand {
+class QueueCmd: Command, Registable {
     override val command = "queue"
     override val description = "현재 대기열을 보여줍니다"
     override val options = null
 
-    override fun on() {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command)} 커맨드 불러오기 성공")
+    override suspend fun register() {
         onRun(bot) {
             val voiceChannel = interaction.user.getVoiceStateOrNull()
             if(voiceChannel?.channelId == null) {
@@ -42,7 +43,6 @@ class QueueCmd: Command, OnCommand {
             val link = kord.manager.getLink(interaction.guildId.value)
             if(!link.isSameChannel(interaction, voiceChannel)) return@onRun
 
-            val player = link.player
 
             val current = link.queue.current
             if(current == null) {
@@ -94,38 +94,34 @@ class QueueCmd: Command, OnCommand {
             }
         }
     }
+}
 
-    companion object {
-        const val PageItemCount = 20
-
-        fun queuePage(link: Link, current: Track, itemCountInPage: Int = PageItemCount): List<String> {
-            val page = ArrayList<String>()
-            if(itemCountInPage < link.queue.size) { //2페이지 이상
-                var count = 0
-                for(p in 0 until  ceil(link.queue.size/itemCountInPage.toDouble()).toInt()) {
-                    var pageDescription = "💿 ${current.info.displayTitle}\n\n"
-                    val beforeCount = count
-                    inner@for(i in beforeCount until itemCountInPage+beforeCount) {
-                        try {
-                            val track = link.queue[i].track
-                            pageDescription += "${"${i+1}.".bold}ﾠ${track.info.displayTitle}\n"
-                            count++
-                        } catch (_: IndexOutOfBoundsException) { break@inner }
-                    }
-                    if(0 < link.queue.size-count) {
-                        pageDescription += "\n"+"+${link.queue.size-count}개".bold
-                    }
-//                    println(pageDescription)
-                    page.add(pageDescription)
-                }
-            } else { //1페이지
-                var description = "💿 ${current.info.displayTitle}\n\n"
-                for(i in 0 until link.queue.size) {
-                    description += "${"${i+1}.".bold}ﾠ${link.queue[i].track.info.displayTitle}\n"
-                }
-                page.add(description)
+fun queuePage(link: Link, current: Track, itemCountInPage: Int = 20): List<String> {
+    val page = ArrayList<String>()
+    if(itemCountInPage < link.queue.size) { //2페이지 이상
+        var count = 0
+        for(p in 0 until  ceil(link.queue.size/itemCountInPage.toDouble()).toInt()) {
+            var pageDescription = "💿 ${current.info.displayTitle}\n\n"
+            val beforeCount = count
+            inner@for(i in beforeCount until itemCountInPage+beforeCount) {
+                try {
+                    val track = link.queue[i].track
+                    pageDescription += "${"${i+1}.".bold}ﾠ${track.info.displayTitle}\n"
+                    count++
+                } catch (_: IndexOutOfBoundsException) { break@inner }
             }
-            return page
+            if(0 < link.queue.size-count) {
+                pageDescription += "\n"+"+${link.queue.size-count}개".bold
+            }
+//            println(pageDescription)
+            page.add(pageDescription)
         }
+    } else { //1페이지
+        var description = "💿 ${current.info.displayTitle}\n\n"
+        for(i in 0 until link.queue.size) {
+            description += "${"${i+1}.".bold}ﾠ${link.queue[i].track.info.displayTitle}\n"
+        }
+        page.add(description)
     }
+    return page
 }
