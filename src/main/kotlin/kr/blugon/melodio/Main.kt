@@ -2,16 +2,22 @@ package kr.blugon.melodio
 
 import dev.kord.common.entity.PresenceStatus
 import dev.kord.core.Kord
+import dev.kord.core.exception.KordInitializationException
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
 import dev.schlaubi.lavakord.LavaKord
 import dev.schlaubi.lavakord.kord.lavakord
 import io.github.classgraph.ClassGraph
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.isTest
 import kr.blugon.melodio.Main.manager
 import kr.blugon.melodio.modules.*
+import java.io.File
+import java.io.FileNotFoundException
+import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -45,10 +51,35 @@ object Main {
 }
 
 suspend fun main(args: Array<String>) {
-    bot = Kord(
-        if (args.getOrNull(0) == "test") Settings.TEST_TOKEN
-        else Settings.TOKEN
-    )
+    val settingsFile = File("config.json")
+    if(!settingsFile.exists()) {
+        val resource = ClassLoader.getSystemClassLoader().getResource("config.json")
+            ?.readText() ?: throw FileNotFoundException("The settings file does not exist")
+        withContext(Dispatchers.IO) {
+            settingsFile.createNewFile()
+            settingsFile.writeText(resource)
+        }
+        println("Please edit config.json")
+        exitProcess(0)
+    }
+    val nullInspect = Settings.nullInspect(args.getOrNull(0) == "test")
+    if(nullInspect != null) {
+        println("The ${nullInspect.first} does not exist or is not a ${nullInspect.second}".color(LogColor.RED))
+        exitProcess(0)
+    }
+    if(args.getOrNull(0) == "registerCommand" || (args.getOrNull(0) == "test" && args.getOrNull(1) == "registerCommand")) {
+        deployCommand(args)
+        return
+    }
+    bot = try {
+        Kord(
+            if (args.getOrNull(0) == "test") Settings.TEST_TOKEN!!
+            else Settings.TOKEN!!
+        )
+    } catch (e: KordInitializationException) {
+        println("Token is wrong".color(LogColor.RED))
+        exitProcess(0)
+    }
     bot.isTest = args.getOrNull(0) == "test"
 
     bot.manager = bot.lavakord {
@@ -57,7 +88,7 @@ suspend fun main(args: Array<String>) {
             retry = linear(2.seconds, 60.seconds, 10)
         }
     }
-    bot.manager.addNode("ws://${Settings.LAVALINK_HOST}:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD)
+    bot.manager.addNode("ws://${Settings.LAVALINK_HOST}:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD!!)
 
     val rootPackage = Main.javaClass.`package`
 

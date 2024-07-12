@@ -30,6 +30,7 @@ dependencies {
 //    implementation("kr.blugon:kordmand:latest.release")
     implementation("kr.blugon:kordmand:0.0.3")
     implementation("com.googlecode.json-simple:json-simple:1.1.1")
+    implementation("org.json:json:20240205")
     implementation("io.github.classgraph:classgraph:latest.release")
 }
 

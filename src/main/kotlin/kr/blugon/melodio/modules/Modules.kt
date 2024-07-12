@@ -14,7 +14,6 @@ import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.modules.LogColor.Companion.color
 import mu.KLogger
 import java.text.SimpleDateFormat
 import java.util.*

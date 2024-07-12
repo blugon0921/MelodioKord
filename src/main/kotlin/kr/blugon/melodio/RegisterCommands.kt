@@ -8,9 +8,17 @@ import kr.blugon.kordmand.Command.Companion.registerGuildCommand
 import kr.blugon.melodio.modules.LogColor
 import kr.blugon.melodio.modules.logger
 
-suspend fun main(args: Array<String>) {
-    val bot = if (args[0] == "test") Kord(Settings.TEST_TOKEN)
-               else Kord(Settings.TOKEN)
+suspend fun deployCommand(args: Array<String>) {
+    val isTest = args.getOrNull(0) == "test"
+    val token = when(isTest) {
+        true -> Settings.TEST_TOKEN!!
+        false -> Settings.TOKEN!!
+    }
+    val guildId = when(isTest) {
+        true -> Settings.TEST_GUILD_ID!!
+        false -> Settings.GUILD_ID!!
+    }
+    val bot = Kord(token)
 
     val rootPackage = Main.javaClass.`package`
 
@@ -24,10 +32,7 @@ suspend fun main(args: Array<String>) {
         }
     }
     for(command in commands) {
-        bot.registerGuildCommand(command, Snowflake(
-            if(args[0] == "test") Settings.TEST_GUILD_ID
-            else Settings.GUILD_ID
-        ))
+        bot.registerGuildCommand(command, Snowflake(guildId))
         bot.registerGlobalCommand(command)
         logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(command.command)} 커맨드 등록 완료")
     }
