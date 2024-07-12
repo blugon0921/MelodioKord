@@ -18,7 +18,7 @@ suspend fun main(args: Array<String>) {
     rootPackage.classes<Command>("commands").forEach { clazz ->
         try {
             val instance = clazz.getDeclaredConstructor().newInstance()
-            commands.add((instance as Command))
+            commands.add(instance as Command)
         } catch (e: Exception) {
             return@forEach
         }
