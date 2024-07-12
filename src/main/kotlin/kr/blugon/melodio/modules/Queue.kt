@@ -20,7 +20,6 @@ suspend fun Link.addEvent() {
     val player = this.player
 
     player.on<Event, TrackEndEvent> { //END Event
-        link.queue.current = null
         if(this.reason != Message.EmittedEvent.TrackEndEvent.AudioTrackEndReason.FINISHED) return@on
         try {
             when(link.repeatMode) {
@@ -31,19 +30,15 @@ suspend fun Link.addEvent() {
                     }
                     link.playTrack(link.queue.first().track)
                     if (link.queue.isNotEmpty()) link.queue.removeAt(0)
+                    link.queue.current = null
                 }
                 RepeatMode.TRACK -> { //한곡 반복일때 끝난 곡 다시 재생
-                    link.playTrack(track) {
-                        end = Duration.parse("${track.info.length}ms")
-                    }
+                    link.playTrack(track)
                 }
                 RepeatMode.QUEUE -> { //대기열 반복일때 다음곡 재생 후 끝난 곡 대기열에 추가
-                    link.queue.add(track) {
-                        end = Duration.parse("${track.info.length}ms")
-                    }
-                    link.playTrack(link.queue.first().track) {
-                        end = Duration.parse("${link.queue[0].track.info.length}ms")
-                    }
+                    link.queue.add(track)
+                    link.queue.current = null
+                    link.playTrack(link.queue.first().track)
                     if (link.queue.isNotEmpty()) link.queue.removeAt(0)
                 }
             }
@@ -65,10 +60,10 @@ suspend fun Link.addEvent() {
                 link.queue.shuffle()
             } else link.repeatedShuffleCount++
         }
-//                kordLogger.log(
-//                    "[${stringLimit(track.title, 40).color(LogColor.BLUE)}]노래가" +
-//                         "[${guild.name.color(LogColor.BLUE)}]서버에서 재생되었습니다"
-//                )
+//        kordLogger.log(
+//            "[${stringLimit(track.title, 40).color(LogColor.BLUE)}]노래가" +
+//                 "[${guild.name.color(LogColor.BLUE)}]서버에서 재생되었습니다"
+//        )
     }
 }
 
@@ -123,7 +118,8 @@ class Queue(private val link: Link): ArrayList<QueueItem>() {
 
     suspend fun add(track: Track, index: Int = size, playOptions: PlayOptions.() -> Unit = {}): Boolean { //return isFirstTrack
         if(playerQueue[link.guildId] == null) playerQueue[link.guildId] = this
-        return if(link.player.playingTrack == null) {
+//        return if(link.player.playingTrack == null) {
+        return if(this.current == null) {
             link.playTrack(track) {
                 playOptions(this)
                 this.volume = Modules.DEFAULT_VOLUME
@@ -147,7 +143,8 @@ class Queue(private val link: Link): ArrayList<QueueItem>() {
                 this.volume = Modules.DEFAULT_VOLUME
             })
         }
-        if(link.player.playingTrack == null) {
+//        if(link.player.playingTrack == null) {
+        if(this.current == null) {
             queueItems = queueItems.subList(1, queueItems.size)
             link.playTrack(tracks[0]) {
                 playOptions(this)

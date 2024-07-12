@@ -46,10 +46,7 @@ class PlayCmd: Command, Registable {
                 link.connectAudio(voiceChannel.channelId!!)
             }
 
-            val isComplete = response.completePlay(item, link, url, index)
-            if(!isComplete) return@onRun
-            if(player.paused) player.unPause()
-            if(isShuffle) link.queue.shuffle()
+            response.completePlay(item, link, url, index, isShuffle)
         }
 
         onAutoComplete(bot) {

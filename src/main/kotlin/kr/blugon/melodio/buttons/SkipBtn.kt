@@ -17,6 +17,12 @@ class SkipBtn: Button {
             if(interaction.component.customId != name) return@on
             val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return@on
 
+            //만약 대기열 반복중이면
+            if(link.repeatMode == RepeatMode.QUEUE) {
+                //스킵한곡 다시 대기열에 추가
+                link.queue.add(current)
+            }
+
             interaction.respondPublic {
                 embed {
                     val track = link.skip()
@@ -24,8 +30,8 @@ class SkipBtn: Button {
                     description = if(track != null) {
                         """
                             ${current.info.displayTitle}
-                                                
-                                                
+                            
+                            
                             :arrow_forward: ${track.info.displayTitle}
                         """.trimIndent()
                     } else {

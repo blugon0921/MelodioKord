@@ -10,7 +10,7 @@ import kr.blugon.melodio.Settings
 import kr.blugon.melodio.modules.Modules.addThisButtons
 import kr.blugon.melodio.modules.Modules.timeFormat
 
-suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(item: LoadResult, link: Link, url: String, index: Int = -1): Boolean {
+suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(item: LoadResult, link: Link, url: String, index: Int = -1, isShuffle: Boolean = false) {
     when(item) {
         is LoadResult.TrackLoaded -> {
             val track = item.data
@@ -39,7 +39,10 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(item: 
         }
         is LoadResult.PlaylistLoaded -> {
             val playlist = item.data
-            link.queue.add(playlist.tracks, if(index == -1) link.queue.size else index)
+            link.queue.add(
+                if(isShuffle) playlist.tracks.shuffled()
+                else playlist.tracks
+            , if(index == -1) link.queue.size else index)
             this.respond {
                 embed {
                     title = ":musical_note: 대기열에 재생목록을 추가하였습니다"
@@ -97,14 +100,15 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(item: 
         is LoadResult.NoMatches -> {
             if(link.queue.current == null) link.destroy()
             this.respond { embeds = mutableListOf(errorEmbed(Messages.NO_SEARCH_RESULT)) }
-            return false
+            return
         }
         is LoadResult.LoadFailed -> {
             if(link.queue.current == null) link.destroy()
             println(item.data)
             this.respond { embeds = mutableListOf(errorEmbed(Messages.SEARCH_EXCEPTION)) }
-            return false
+            return
         }
     }
-    return true
+    if(link.player.paused) link.player.unPause()
+    if(isShuffle) link.queue.shuffle()
 }
