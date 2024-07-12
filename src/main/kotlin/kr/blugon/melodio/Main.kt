@@ -14,6 +14,7 @@ import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Main.isTest
 import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.Main.version
 import kr.blugon.melodio.modules.*
 import java.io.File
 import java.io.FileNotFoundException
@@ -22,6 +23,8 @@ import kotlin.time.Duration.Companion.seconds
 
 
 object Main {
+    val version = "1.1.3"
+
     lateinit var bot: Kord
     private lateinit var lavalink: LavaKord
     var Kord.manager: LavaKord
@@ -52,7 +55,6 @@ object Main {
 
 suspend fun main(args: Array<String>) {
     //버전
-    val version = "1.1.2"
     val settingsFile = File("config.json")
     if(!settingsFile.exists()) {
         val resource = ClassLoader.getSystemClassLoader().getResource("config.json")
