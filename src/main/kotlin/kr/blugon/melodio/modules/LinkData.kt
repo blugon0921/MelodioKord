@@ -7,53 +7,53 @@ import kr.blugon.melodio.events.VoiceStateUpdate.Companion.destoryScopeRunning
 import kr.blugon.melodio.events.VoiceStateUpdate.Companion.playerDestoryScopeRunning
 
 
-private val linkRepeatMode = HashMap<ULong, RepeatMode>()
+private val _repeatMode = HashMap<ULong, RepeatMode>()
 var Link.repeatMode: RepeatMode
     get() {
-        if(linkRepeatMode[this.guildId] == null) linkRepeatMode[this.guildId] = RepeatMode.OFF
-        return linkRepeatMode[this.guildId]!!
+        if(_repeatMode[this.guildId] == null) _repeatMode[this.guildId] = RepeatMode.OFF
+        return _repeatMode[this.guildId]!!
     }
     set(value) {
-        linkRepeatMode[this.guildId] = value
+        _repeatMode[this.guildId] = value
     }
 
-private val linkIsRepeatShuffle = HashMap<ULong, Boolean>()
+private val _isRepeatedShuffle = HashMap<ULong, Boolean>()
 var Link.isRepeatedShuffle: Boolean
     get() {
-        if(linkIsRepeatShuffle[this.guildId] == null) linkIsRepeatShuffle[this.guildId] = false
-        return linkIsRepeatShuffle[this.guildId]!!
+        if(_isRepeatedShuffle[this.guildId] == null) _isRepeatedShuffle[this.guildId] = false
+        return _isRepeatedShuffle[this.guildId]!!
     }
     set(value) {
-        linkIsRepeatShuffle[this.guildId] = value
+        _isRepeatedShuffle[this.guildId] = value
     }
-private val linkRepeatShuffleCount = HashMap<ULong, Int>()
+private val _repeatedShuffleCount = HashMap<ULong, Int>()
 var Link.repeatedShuffleCount: Int
     get() {
-        if(linkRepeatShuffleCount[this.guildId] == null) linkRepeatShuffleCount[this.guildId] = 0
-        return linkRepeatShuffleCount[this.guildId]!!
+        if(_repeatedShuffleCount[this.guildId] == null) _repeatedShuffleCount[this.guildId] = 0
+        return _repeatedShuffleCount[this.guildId]!!
     }
     set(value) {
-        linkRepeatShuffleCount[this.guildId] = value
+        _repeatedShuffleCount[this.guildId] = value
     }
 
-private val linkVoiceChannel = HashMap<ULong, Snowflake?>()
+private val _voiceChannel = HashMap<ULong, Snowflake?>()
 var Link.voiceChannel: Snowflake?
     get() {
-        if(linkVoiceChannel[this.guildId] == null) linkVoiceChannel[this.guildId] = null
-        return linkVoiceChannel[this.guildId]
+        if(_voiceChannel[this.guildId] == null) _voiceChannel[this.guildId] = null
+        return _voiceChannel[this.guildId]
     }
     set(value) {
-        linkVoiceChannel[this.guildId] = value
+        _voiceChannel[this.guildId] = value
     }
 
 val ULong.snowflake: Snowflake get() = Snowflake(this)
 
 suspend fun Link.destroyPlayer() {
     this.queue.destroy()
-    linkRepeatMode.remove(this.guildId)
-    linkIsRepeatShuffle.remove(this.guildId)
-    linkRepeatShuffleCount.remove(this.guildId)
-    linkVoiceChannel.remove(this.guildId)
+    _repeatMode.remove(this.guildId)
+    _isRepeatedShuffle.remove(this.guildId)
+    _repeatedShuffleCount.remove(this.guildId)
+    _voiceChannel.remove(this.guildId)
     if(this.destoryScopeRunning) {
         playerDestoryScopeRunning.remove(this.guildId)
     }

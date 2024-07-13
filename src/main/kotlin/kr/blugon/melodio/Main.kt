@@ -1,5 +1,6 @@
 package kr.blugon.melodio
 
+import dev.arbjerg.lavalink.protocol.v4.Plugins
 import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.common.entity.PresenceStatus
 import dev.kord.core.Kord
@@ -8,7 +9,10 @@ import dev.kord.core.exception.KordInitializationException
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
 import dev.schlaubi.lavakord.LavaKord
+import dev.schlaubi.lavakord.Plugin
+import dev.schlaubi.lavakord.PluginApi
 import dev.schlaubi.lavakord.kord.lavakord
+import dev.schlaubi.lavakord.plugins.lavasrc.LavaSrc
 import io.github.classgraph.ClassGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -25,7 +29,8 @@ import kotlin.time.Duration.Companion.seconds
 
 
 object Main {
-    val version = "v1.1.5"
+    //버전
+    val version = "v1.1.6"
 
     lateinit var bot: Kord
     private lateinit var lavalink: LavaKord
@@ -56,7 +61,6 @@ object Main {
 }
 
 suspend fun main(args: Array<String>) {
-    //버전
     val settingsFile = File("config.json")
     if(!settingsFile.exists()) {
         val resource = ClassLoader.getSystemClassLoader().getResource("config.json")
@@ -93,8 +97,13 @@ suspend fun main(args: Array<String>) {
             autoReconnect = true
             retry = linear(2.seconds, 60.seconds, 10)
         }
+        plugins {
+            install(LavaSrc)
+//            install(Lyrics)
+        }
     }
     bot.manager.addNode("ws://${Settings.LAVALINK_HOST}:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD!!)
+    bot.manager
 
     val rootPackage = Main.javaClass.`package`
 

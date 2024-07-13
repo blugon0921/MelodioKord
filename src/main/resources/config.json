@@ -1,10 +1,8 @@
 {
   "token": "String",
-  "applicationId": "Int",
   "guildId": "Int",
 
   "testToken": "String",
-  "testApplicationId": "Int",
   "testGuildId": "Int",
 
   "colorNormal": "A04CCB",

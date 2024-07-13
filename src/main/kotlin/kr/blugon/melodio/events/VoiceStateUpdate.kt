@@ -2,6 +2,7 @@ package kr.blugon.melodio.events
 
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.entity.Member
+import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kord.core.on
 import dev.schlaubi.lavakord.audio.Link
@@ -33,6 +34,10 @@ class VoiceStateUpdate: Event {
             if(old == null) return@on
             if(link.state != Link.State.CONNECTED) return@on
 
+            when(bot.getUser(state.userId)?.isBot) {
+                true, null -> return@on
+                else -> {}
+            }
             if(old?.channelId != null && state.channelId == null && state.userId == bot.selfId) {
                 link.destroyPlayer()
                 return@on
@@ -83,9 +88,9 @@ class VoiceStateUpdate: Event {
                 if(it.getMember().isBot) return@collect
                 oldMembers.add(it.getMember())
             }
-            if(oldMembers.size == stateChange.members.size) return@on
             when(stateChange.type) {
                 VoiceUpdateType.JOIN -> {
+                    if(oldMembers.size == stateChange.members.size) return@on
                     if(oldMembers.isEmpty() && stateChange.members.isNotEmpty() && link.player.paused) {
                         link.player.pause(false)
                         link.destoryScopeRunning = false

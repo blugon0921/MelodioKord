@@ -2,15 +2,16 @@ package kr.blugon.melodio.buttons
 
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
+import dev.kord.core.live.live
 import dev.kord.core.on
 import dev.kord.rest.builder.message.embed
+import dev.schlaubi.lavakord.audio.player.guildId
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.modules.Button
+import kr.blugon.melodio.modules.*
 import kr.blugon.melodio.modules.Modules.buttons
-import kr.blugon.melodio.modules.defaultCheck
-import kr.blugon.melodio.modules.displayTitle
-import kr.blugon.melodio.modules.interactedUser
 
 class PauseBtn: Button {
     override val name = "pauseButton"

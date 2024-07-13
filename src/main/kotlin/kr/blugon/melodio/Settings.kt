@@ -28,13 +28,11 @@ object Settings {
         if(inspectTest) {
             when(null) {
                 TEST_TOKEN -> return "testToken" to "string"
-                TEST_APPLICATION_ID -> return "testApplicationId" to "int"
                 TEST_GUILD_ID -> return "testGuildId" to "int"
             }
         }
         return when(null) {
             TOKEN -> "token" to "string"
-            APPLICATION_ID -> "applicationId" to "int"
             GUILD_ID -> "guildId" to "int"
 
             COLOR_NORMAL -> "token" to "string(hex)"
@@ -49,11 +47,9 @@ object Settings {
     }
 
     val TOKEN = settings.getStringOrNull("token")
-    val APPLICATION_ID = settings.getLongOrNull("applicationId")
     val GUILD_ID = settings.getLongOrNull("guildId")
 
     val TEST_TOKEN = settings.getStringOrNull("testToken")
-    val TEST_APPLICATION_ID = settings.getLongOrNull("testApplicationId")
     val TEST_GUILD_ID = settings.getLongOrNull("testGuildId")
 
     private val COLOR_NORMAL_VALUE = settings.getStringOrNull("colorNormal")
