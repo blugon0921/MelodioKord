@@ -40,7 +40,7 @@ class SpeedCmd: Command, Registable {
 
             interaction.respondPublic {
                 embed {
-                    title = "$icon 속도가 곧 ${speed}배로 설정됩니다".bold
+                    title = "$icon 속도가 곧 ${speed}배로 설정됩니다"
                     color = Settings.COLOR_NORMAL
                 }
                 components = mutableListOf(buttons)

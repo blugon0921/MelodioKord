@@ -1,11 +1,13 @@
 package kr.blugon.melodio.modules
 
 import dev.arbjerg.lavalink.protocol.v4.LoadResult
+import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.core.behavior.interaction.response.DeferredPublicMessageInteractionResponseBehavior
 import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
 import dev.schlaubi.lavakord.plugins.lavasrc.lavaSrcInfo
+import kr.blugon.melodio.Main
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.modules.Modules.addThisButtons
 import kr.blugon.melodio.modules.Modules.timeFormat

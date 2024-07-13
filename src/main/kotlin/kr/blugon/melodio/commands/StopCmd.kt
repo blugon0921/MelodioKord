@@ -23,7 +23,7 @@ class StopCmd: Command, Registable {
 
             interaction.respondPublic {
                 embed {
-                    title = ":stop_button: 노래를 정지하고 통화방에서 퇴장했습니다".bold
+                    title = ":stop_button: 노래를 정지하고 통화방에서 퇴장했습니다"
                     color = Settings.COLOR_NORMAL
                 }
             }

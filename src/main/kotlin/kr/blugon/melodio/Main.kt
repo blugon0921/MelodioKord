@@ -1,7 +1,9 @@
 package kr.blugon.melodio
 
+import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.common.entity.PresenceStatus
 import dev.kord.core.Kord
+import dev.kord.core.entity.User
 import dev.kord.core.exception.KordInitializationException
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
@@ -23,7 +25,7 @@ import kotlin.time.Duration.Companion.seconds
 
 
 object Main {
-    val version = "1.1.4"
+    val version = "v1.1.5"
 
     lateinit var bot: Kord
     private lateinit var lavalink: LavaKord

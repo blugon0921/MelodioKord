@@ -59,13 +59,13 @@ class SkipCmd: Command, Registable {
             }
 
             val embed = EmbedBuilder()
-            embed.title = ":track_next: 노래 ${count}개를 건너뛰었습니다".bold
+            embed.title = ":track_next: 노래 ${count}개를 건너뛰었습니다"
             embed.color = Settings.COLOR_NORMAL
 
             //만약 대기열 크기만큼 스킵하면서 대기열 반복중이 아니면
             if(link.queue.size == count && link.repeatMode != RepeatMode.QUEUE) {
                 //대기열 크기만큼 건너뛰는 메세지로 바꾸기
-                embed.title = ":track_next: 노래 ${link.queue.size}개를 건너뛰었습니다".bold
+                embed.title = ":track_next: 노래 ${link.queue.size}개를 건너뛰었습니다"
             }
 
             //만약 스킵하는 개수가 대기열보다 작다면

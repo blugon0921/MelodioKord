@@ -83,6 +83,7 @@ class VoiceStateUpdate: Event {
                 if(it.getMember().isBot) return@collect
                 oldMembers.add(it.getMember())
             }
+            if(oldMembers.size == stateChange.members.size) return@on
             when(stateChange.type) {
                 VoiceUpdateType.JOIN -> {
                     if(oldMembers.isEmpty() && stateChange.members.isNotEmpty() && link.player.paused) {

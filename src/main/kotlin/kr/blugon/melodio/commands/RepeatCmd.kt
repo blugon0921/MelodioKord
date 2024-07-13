@@ -29,23 +29,23 @@ class RepeatCmd: Command, Registable {
             embed.title = when(mode) {
                 1L -> {
                     link.repeatMode = RepeatMode.TRACK
-                    ":repeat_one: 현재 노래를 반복합니다".bold
+                    ":repeat_one: 현재 노래를 반복합니다"
                 }
                 2L -> {
                     link.repeatMode = RepeatMode.QUEUE
-                    ":repeat: 대기열을 반복합니다".bold
+                    ":repeat: 대기열을 반복합니다"
                 }
                 3L -> {
                     link.repeatMode = RepeatMode.OFF
-                    ":arrow_right_hook: 노래 반복을 해제했습니다".bold
+                    ":arrow_right_hook: 노래 반복을 해제했습니다"
                 }
                 else -> {
                     if(link.repeatMode == RepeatMode.OFF) {
                         link.repeatMode = RepeatMode.TRACK
-                        ":repeat_one: 현재 노래를 반복합니다".bold
+                        ":repeat_one: 현재 노래를 반복합니다"
                     } else {
                         link.repeatMode = RepeatMode.OFF
-                        ":arrow_right_hook: 노래 반복을 해제했습니다".bold
+                        ":arrow_right_hook: 노래 반복을 해제했습니다"
                     }
                 }
             }

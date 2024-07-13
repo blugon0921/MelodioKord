@@ -12,7 +12,6 @@ import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.modules.Registable
 import kr.blugon.melodio.modules.completePlay
 import kr.blugon.melodio.modules.playDefaultCheck
-import kr.blugon.melodio.modules.queue
 import org.json.JSONArray
 import java.io.BufferedReader
 import java.io.InputStreamReader

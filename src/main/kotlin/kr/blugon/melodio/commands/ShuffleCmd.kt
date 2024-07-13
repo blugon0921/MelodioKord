@@ -58,7 +58,7 @@ class ShuffleCmd: Command, Registable {
                 link.repeatedShuffleCount = 0
                 interaction.respondPublic {
                     embed {
-                        title = ":twisted_rightwards_arrows: 대기열 순서 섞기를 반복합니다".bold
+                        title = ":twisted_rightwards_arrows: 대기열 순서 섞기를 반복합니다"
                         color = Settings.COLOR_NORMAL
                     }
                     components = mutableListOf(buttons)
