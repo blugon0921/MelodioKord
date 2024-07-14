@@ -25,7 +25,7 @@ import kotlin.time.Duration.Companion.seconds
 
 object Main {
     //버전
-    val version = "v1.1.7"
+    val version = "v1.1.8"
 
     lateinit var bot: Kord
     private lateinit var lavalink: LavaKord

@@ -21,10 +21,13 @@ suspend fun ActionInteraction.defaultCheck(): DefaultCheckResult? {
     val link = kord.manager.getLink(this.guildId)
     if(!link.isSameChannel(this, voiceChannel)) return null
 
-    val current = link.queue.current
+    var current = link.queue.current
     if(current == null) { //재생중인지 확인
-        this.respondNotExistPlayingNow()
-        return null
+        current = link.player.playingTrack
+        if(current == null) {
+            this.respondNotExistPlayingNow()
+            return null
+        } else link.queue.current = link.player.playingTrack
     }
     return DefaultCheckResult(voiceChannel, link, link.player, current)
 }
