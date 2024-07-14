@@ -1,16 +1,11 @@
 package kr.blugon.melodio
 
-import dev.arbjerg.lavalink.protocol.v4.Plugins
-import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.common.entity.PresenceStatus
 import dev.kord.core.Kord
-import dev.kord.core.entity.User
 import dev.kord.core.exception.KordInitializationException
 import dev.kord.gateway.Intent
 import dev.kord.gateway.PrivilegedIntent
 import dev.schlaubi.lavakord.LavaKord
-import dev.schlaubi.lavakord.Plugin
-import dev.schlaubi.lavakord.PluginApi
 import dev.schlaubi.lavakord.kord.lavakord
 import dev.schlaubi.lavakord.plugins.lavasrc.LavaSrc
 import io.github.classgraph.ClassGraph
@@ -102,8 +97,7 @@ suspend fun main(args: Array<String>) {
 //            install(Lyrics)
         }
     }
-//    bot.manager.addNode("ws://${Settings.LAVALINK_HOST}:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD!!)
-    bot.manager.addNode("ws://172.30.1.99:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD!!)
+    bot.manager.addNode("ws://${Settings.LAVALINK_HOST}:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD!!)
 
     val rootPackage = Main.javaClass.`package`
 
