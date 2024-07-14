@@ -84,19 +84,19 @@ object Modules {
     val buttons: ActionRowBuilder
         get() {
             return ActionRowBuilder().apply {
-                this.interactionButton(ButtonStyle.Success, "stopButton") {
+                this.interactionButton(ButtonStyle.Secondary, "stopButton") {
                     this.label = "정지"
                     this.emoji = DiscordPartialEmoji(name = "⏹\uFE0F") //⏹️
                 }
-                this.interactionButton(ButtonStyle.Success, "pauseButton") {
-                    this.label = "일시정지/해제"
+                this.interactionButton(ButtonStyle.Secondary, "pauseButton") {
+                    this.label = "일시정지"
                     this.emoji = DiscordPartialEmoji(name = "⏯\uFE0F") //⏯️
                 }
-                this.interactionButton(ButtonStyle.Success, "repeatQueueButton") {
-                    this.label = "대기열반복/해제"
+                this.interactionButton(ButtonStyle.Secondary, "repeatQueueButton") {
+                    this.label = "대기열반복"
                     this.emoji = DiscordPartialEmoji(name = "\uD83D\uDD01") //🔁
                 }
-                this.interactionButton(ButtonStyle.Success, "skipButton") {
+                this.interactionButton(ButtonStyle.Secondary, "skipButton") {
                     this.label = "다음곡"
                     this.emoji = DiscordPartialEmoji(name = "⏭\uFE0F") //⏭️
                 }
@@ -104,7 +104,7 @@ object Modules {
         }
 
     val addThisButtons = buttons.apply {
-        this.interactionButton(ButtonStyle.Success, "addThisButton") {
+        this.interactionButton(ButtonStyle.Secondary, "addThisButton") {
             this.label = "해당트랙추가"
             this.emoji = DiscordPartialEmoji(id = Snowflake(1104057502120824912)) //<:plus:1104057502120824912>
         }
@@ -128,8 +128,8 @@ val TrackInfo.titleWithArtist: String
     }
 
 val TrackInfo.displayTitle: String get() = this.displayTitle()
-fun TrackInfo.displayTitle(isHyperlinked: Boolean = true): String {
-    val title = stringLimit(this.titleWithArtist)
+fun TrackInfo.displayTitle(isHyperlinked: Boolean = true, appendArtist: Boolean = true): String {
+    val title = stringLimit(if(appendArtist) this.titleWithArtist else this.title)
     return if(isHyperlinked) title.hyperlink("${this.uri}")
     else title
 }

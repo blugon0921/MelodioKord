@@ -4,11 +4,14 @@ import dev.arbjerg.lavalink.protocol.v4.Track
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.rest.builder.component.ActionRowBuilder
+import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.buttons.BeforePageBtn
+import kr.blugon.melodio.buttons.ReloadPageBtn
 import kr.blugon.melodio.modules.*
 import kr.blugon.melodio.modules.Modules.buttons
 import kr.blugon.melodio.modules.Modules.timeFormat
@@ -22,18 +25,6 @@ class QueueCmd: Command, Registable {
     override suspend fun register() {
         onRun(bot) {
             val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return@onRun
-
-            if(link.queue.isEmpty()) {
-                interaction.respondPublic {
-                    embed {
-                        title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]"
-                        color = Settings.COLOR_NORMAL
-                        description = "💿 ${current.info.displayTitle}\n"
-                    }
-                    components = mutableListOf(buttons)
-                }
-                return@onRun
-            }
 
             val pages = queuePage(link, current)
 
@@ -52,18 +43,11 @@ class QueueCmd: Command, Registable {
                         }"
                     }
                 }
+                val (beforePageButton, nextPageButton, reloadPageButton) = QueueButtons.buttons
                 components = mutableListOf(ActionRowBuilder().apply {
-                    this.interactionButton(ButtonStyle.Primary, "beforePage") {
-                        this.label = "◀이전"
-                        this.disabled = true
-                    }
-                    this.interactionButton(ButtonStyle.Primary, "nextPage") {
-                        this.label = "다음▶"
-                        if(pages.size == 1) this.disabled = true
-                    }
-                    this.interactionButton(ButtonStyle.Primary, "reloadPage") {
-                        this.label = "🔄️새로고침"
-                    }
+                    this.components.add(beforePageButton.apply { this.disabled = true })
+                    this.components.add(nextPageButton.apply { if(pages.size == 1) this.disabled = true })
+                    this.components.add(reloadPageButton)
                 }, buttons)
             }
         }
@@ -97,4 +81,29 @@ fun queuePage(link: Link, current: Track, itemCountInPage: Int = 20): List<Strin
         page.add(description)
     }
     return page
+}
+
+
+class QueueButtons {
+    val beforePageButton: ButtonBuilder
+        get() = ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "beforePage").apply {
+            this.label = "◀이전"
+        }
+    val nextPageButton: ButtonBuilder
+        get() = ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "nextPage").apply {
+            this.label = "다음▶"
+        }
+    val reloadPageButton: ButtonBuilder
+        get() = ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "reloadPage").apply {
+            this.label = "🔄️새로고침"
+        }
+
+    operator fun component1(): ButtonBuilder = beforePageButton
+    operator fun component2(): ButtonBuilder = nextPageButton
+    operator fun component3(): ButtonBuilder = reloadPageButton
+
+    companion object {
+        val buttons: QueueButtons
+            get() = QueueButtons()
+    }
 }

@@ -9,6 +9,7 @@ import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.embed
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.commands.QueueButtons
 import kr.blugon.melodio.commands.queuePage
 import kr.blugon.melodio.modules.*
 import kr.blugon.melodio.modules.Modules.buttons
@@ -22,15 +23,7 @@ class NextPageBtn: Button {
             if(interaction.component.customId != name) return@on
             val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return@on
 
-            val beforePageButton = ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "beforePage").apply {
-                this.label = "◀이전"
-            }
-            val nextPageButton = ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "nextPage").apply {
-                this.label = "다음▶"
-            }
-            val reloadPageButton = ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "reloadPage").apply {
-                this.label = "🔄️새로고침"
-            }
+            val (beforePageButton, nextPageButton, reloadPageButton) = QueueButtons.buttons
 
             val footerText = (if(interaction.message.embeds[0].footer == null) "undefined"
                             else interaction.message.embeds[0].footer!!.text.replace(" ", "")).split("|").last().split("┃").first()

@@ -20,19 +20,22 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(item: 
             this.respond {
                 embed {
                     title = ":musical_note: 대기열에 노래를 추가하였습니다"
-                    description = track.info.displayTitle
+                    description = track.info.displayTitle(appendArtist = false)
                     image = track.info.artworkUrl
                     color = Settings.COLOR_NORMAL
                     field {
                         name = (if(track.info.sourceType == TrackSourceType.Spotify) "아티스트" else "채널").bold
-                        value = track.info.author.box.bold
+                        value = when(track.lavaSrcInfo.artistUrl != null) {
+                            true -> "[${track.info.author}](${track.lavaSrcInfo.artistUrl})".bold
+                            false -> track.info.author.box.bold
+                        }
                         inline = true
                     }
                     var duration = timeFormat(track.info.length)
                     if(track.info.isStream) duration = "LIVE"
                     field {
                         name = "길이".bold
-                        value = duration.box.bold
+                        value = duration.bold
                         inline = true
                     }
                 }
@@ -80,12 +83,15 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(item: 
             this.respond {
                 embed {
                     title = ":musical_note: 대기열에 노래를 추가하였습니다"
-                    description = track.info.displayTitle
+                    description = track.info.displayTitle(appendArtist = false)
                     image = track.info.artworkUrl
                     color = Settings.COLOR_NORMAL
                     field {
                         name = (if(track.info.sourceType == TrackSourceType.Spotify) "아티스트" else "채널").bold
-                        value = track.info.author.box.bold
+                        value = when(track.lavaSrcInfo.artistUrl != null) {
+                            true -> "[${track.info.author}](${track.lavaSrcInfo.artistUrl})".bold
+                            false -> track.info.author.box.bold
+                        }
                         inline = true
                     }
                     var duration = timeFormat(track.info.length)

@@ -30,7 +30,7 @@ import kotlin.time.Duration.Companion.seconds
 
 object Main {
     //버전
-    val version = "v1.1.6"
+    val version = "v1.1.7"
 
     lateinit var bot: Kord
     private lateinit var lavalink: LavaKord
@@ -102,8 +102,8 @@ suspend fun main(args: Array<String>) {
 //            install(Lyrics)
         }
     }
-    bot.manager.addNode("ws://${Settings.LAVALINK_HOST}:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD!!)
-    bot.manager
+//    bot.manager.addNode("ws://${Settings.LAVALINK_HOST}:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD!!)
+    bot.manager.addNode("ws://172.30.1.99:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD!!)
 
     val rootPackage = Main.javaClass.`package`
 
