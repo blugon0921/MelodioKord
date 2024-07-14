@@ -2,6 +2,7 @@ package kr.blugon.melodio.commands
 
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.rest.builder.message.embed
+import dev.schlaubi.lavakord.plugins.lavasrc.lavaSrcInfo
 import kr.blugon.kordmand.Command
 import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
@@ -22,12 +23,15 @@ class NowCmd: Command, Registable {
             interaction.respondPublic {
                 embed {
                     title = ":musical_note: 현재 재생중인 노래"
-                    description = current.info.displayTitle
+                    description = current.info.displayTitle(appendArtist = false)
                     image = current.info.artworkUrl
                     color = Settings.COLOR_NORMAL
                     field {
                         name = (if(current.info.sourceType == TrackSourceType.Spotify) "아티스트" else "채널").bold
-                        value = current.info.author.box.bold
+                        value = when(current.lavaSrcInfo.artistUrl != null) {
+                            true -> "[${current.info.author}](${current.lavaSrcInfo.artistUrl})".bold
+                            false -> current.info.author.box.bold
+                        }
                         inline = true
                     }
                     val duration = timeFormat(current.info.length)
