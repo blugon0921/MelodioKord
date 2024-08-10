@@ -4,8 +4,8 @@ import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.plugins.lavasrc.lavaSrcInfo
 import kr.blugon.kordmand.Command
-import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.bot
 import kr.blugon.melodio.modules.*
 import kr.blugon.melodio.modules.Modules.addThisButtons
 import kr.blugon.melodio.modules.Modules.timeFormat

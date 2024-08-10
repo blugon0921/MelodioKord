@@ -2,14 +2,19 @@ package kr.blugon.melodio.events
 
 import dev.kord.core.behavior.channel.BaseVoiceChannelBehavior
 import dev.kord.core.entity.Member
-import dev.kord.core.entity.channel.VoiceChannel
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kord.core.on
 import dev.schlaubi.lavakord.audio.Link
-import kotlinx.coroutines.*
-import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.modules.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kr.blugon.melodio.bot
+import kr.blugon.melodio.manager
+import kr.blugon.melodio.modules.Event
+import kr.blugon.melodio.modules.destroyPlayer
+import kr.blugon.melodio.modules.queue
+import kr.blugon.melodio.modules.voiceChannel
 
 @OptIn(DelicateCoroutinesApi::class)
 class VoiceStateUpdate: Event {

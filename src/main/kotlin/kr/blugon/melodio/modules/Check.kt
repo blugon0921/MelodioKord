@@ -7,8 +7,8 @@ import dev.kord.core.entity.interaction.GuildInteraction
 import dev.schlaubi.lavakord.audio.Link
 import dev.schlaubi.lavakord.audio.player.Player
 import dev.schlaubi.lavakord.kord.getLink
-import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.Main.manager
+import kr.blugon.melodio.bot
+import kr.blugon.melodio.manager
 
 suspend fun ActionInteraction.defaultCheck(): DefaultCheckResult? {
     if(this !is GuildInteraction) return null

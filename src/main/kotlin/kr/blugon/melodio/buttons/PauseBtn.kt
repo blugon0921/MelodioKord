@@ -8,8 +8,8 @@ import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.player.guildId
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
-import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.bot
 import kr.blugon.melodio.modules.*
 import kr.blugon.melodio.modules.Modules.buttons
 

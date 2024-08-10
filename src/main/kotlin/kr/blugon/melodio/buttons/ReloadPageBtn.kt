@@ -1,14 +1,12 @@
 package kr.blugon.melodio.buttons
 
-import dev.kord.common.entity.ButtonStyle
 import dev.kord.core.behavior.edit
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.component.ActionRowBuilder
-import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.embed
-import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.bot
 import kr.blugon.melodio.commands.QueueButtons
 import kr.blugon.melodio.commands.queuePage
 import kr.blugon.melodio.modules.*

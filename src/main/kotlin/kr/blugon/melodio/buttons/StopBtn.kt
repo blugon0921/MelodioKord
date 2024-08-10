@@ -4,8 +4,8 @@ import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
 import dev.kord.core.on
 import dev.kord.rest.builder.message.embed
-import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.bot
 import kr.blugon.melodio.modules.*
 
 class StopBtn: Button {

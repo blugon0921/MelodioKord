@@ -5,8 +5,8 @@ import dev.kord.rest.builder.message.EmbedBuilder
 import dev.kord.rest.builder.message.embed
 import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.IntegerOption
-import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.bot
 import kr.blugon.melodio.modules.*
 import kr.blugon.melodio.modules.Modules.buttons
 

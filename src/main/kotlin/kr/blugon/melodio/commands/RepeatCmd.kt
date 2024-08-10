@@ -4,10 +4,13 @@ import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.rest.builder.message.EmbedBuilder
 import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.IntegerOption
-import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.modules.*
+import kr.blugon.melodio.bot
 import kr.blugon.melodio.modules.Modules.buttons
+import kr.blugon.melodio.modules.Registable
+import kr.blugon.melodio.modules.RepeatMode
+import kr.blugon.melodio.modules.defaultCheck
+import kr.blugon.melodio.modules.repeatMode
 
 class RepeatCmd: Command, Registable {
     override val command = "repeat"

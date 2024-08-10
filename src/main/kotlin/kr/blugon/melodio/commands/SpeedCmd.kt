@@ -6,11 +6,10 @@ import dev.schlaubi.lavakord.audio.player.applyFilters
 import dev.schlaubi.lavakord.audio.player.timescale
 import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.NumberOption
-import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.bot
 import kr.blugon.melodio.modules.Modules.buttons
 import kr.blugon.melodio.modules.Registable
-import kr.blugon.melodio.modules.bold
 import kr.blugon.melodio.modules.defaultCheck
 import kotlin.math.round
 

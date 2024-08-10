@@ -3,8 +3,11 @@ package kr.blugon.melodio.events
 import dev.kord.core.event.guild.GuildDeleteEvent
 import dev.kord.core.on
 import kotlinx.coroutines.flow.toList
-import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.modules.*
+import kr.blugon.melodio.bot
+import kr.blugon.melodio.modules.Event
+import kr.blugon.melodio.modules.LogColor
+import kr.blugon.melodio.modules.color
+import kr.blugon.melodio.modules.logger
 
 class LeaveGuild: Event {
     override val name = "leaveGuild"

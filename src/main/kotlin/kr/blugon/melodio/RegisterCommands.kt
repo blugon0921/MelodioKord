@@ -8,15 +8,14 @@ import kr.blugon.kordmand.Command.Companion.registerGuildCommand
 import kr.blugon.melodio.modules.LogColor
 import kr.blugon.melodio.modules.logger
 
-suspend fun deployCommand(args: Array<String>) {
-    val isTest = args.getOrNull(0) == "test"
+suspend fun registerCommands(isTest: Boolean = false) {
     val token = when(isTest) {
-        true -> Settings.TEST_TOKEN!!
-        false -> Settings.TOKEN!!
+        true -> Settings.TEST_TOKEN?: ThrowConfigException("testToken")
+        false -> Settings.TOKEN
     }
     val guildId = when(isTest) {
-        true -> Settings.TEST_GUILD_ID!!
-        false -> Settings.GUILD_ID!!
+        true -> Settings.TEST_GUILD_ID?: ThrowConfigException("testGuildId")
+        false -> Settings.GUILD_ID
     }
     val bot = Kord(token)
 

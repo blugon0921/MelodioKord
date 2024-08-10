@@ -12,10 +12,6 @@ import io.github.classgraph.ClassGraph
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kr.blugon.kordmand.Command
-import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.Main.isTest
-import kr.blugon.melodio.Main.manager
-import kr.blugon.melodio.Main.version
 import kr.blugon.melodio.modules.*
 import java.io.File
 import java.io.FileNotFoundException
@@ -23,69 +19,58 @@ import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 
 
-object Main {
-    //버전
-    val version = "v1.1.9"
+object Main
 
-    lateinit var bot: Kord
-    private lateinit var lavalink: LavaKord
-    var Kord.manager: LavaKord
-        get() = lavalink
-        set(value) { lavalink = value }
+//버전
+const val version = "v1.1.10"
 
-    private val kordIsReady = HashMap<Kord, Boolean>()
-    var Kord.isReady: Boolean
-        get() {
-            if(kordIsReady[this] == null) kordIsReady[this] = false
-            return kordIsReady[this]!!
-        }
-        set(value) {
-            kordIsReady[this] = value
-        }
+lateinit var bot: Kord
+private lateinit var _lavalink: LavaKord
+var Kord.manager: LavaKord
+    get() = _lavalink
+    set(value) { _lavalink = value }
 
+private val _isReady = HashMap<Kord, Boolean>()
+var Kord.isReady: Boolean
+    get() {
+        if(_isReady[this] == null) _isReady[this] = false
+        return _isReady[this]!!
+    }
+    set(value) {
+        _isReady[this] = value
+    }
 
-    private val kordIsTestBot = HashMap<Kord, Boolean>()
-    var Kord.isTest: Boolean
-        get() {
-            if(kordIsTestBot[this] == null) kordIsTestBot[this] = false
-            return kordIsTestBot[this]!!
-        }
-        set(value) {
-            kordIsTestBot[this] = value
-        }
-}
+private val _isTestBot = HashMap<Kord, Boolean>()
+var Kord.isTest: Boolean
+    get() {
+        if(_isTestBot[this] == null) _isTestBot[this] = false
+        return _isTestBot[this]!!
+    }
+    set(value) {
+        _isTestBot[this] = value
+    }
+
 
 suspend fun main(args: Array<String>) {
     val settingsFile = File("config.json")
-    if(!settingsFile.exists()) {
-        val resource = ClassLoader.getSystemClassLoader().getResource("config.json")
-            ?.readText() ?: throw FileNotFoundException("The settings file does not exist")
+    if(!settingsFile.exists()) { //config.json is not exist
+        val resource = ClassLoader.getSystemClassLoader().getResource("config.json")?.readText() ?: throw FileNotFoundException("Failed to load config.json file")
         withContext(Dispatchers.IO) {
             settingsFile.createNewFile()
             settingsFile.writeText(resource)
         }
-        println("Please edit config.json")
-        exitProcess(0)
+        return println("Please edit config.json")
     }
-    val nullInspect = Settings.nullInspect(args.getOrNull(0) == "test")
-    if(nullInspect != null) {
-        println("The ${nullInspect.first} does not exist or is not a ${nullInspect.second}".color(LogColor.RED))
-        exitProcess(0)
-    }
-    if(args.getOrNull(0) == "registerCommand" || (args.getOrNull(0) == "test" && args.getOrNull(1) == "registerCommand")) {
-        deployCommand(args)
-        return
-    }
+    val isTest = args.contains("-test")
+
+    if(args.contains("-registerCommand")) return registerCommands(isTest)
     bot = try {
         Kord(
-            if (args.getOrNull(0) == "test") Settings.TEST_TOKEN!!
-            else Settings.TOKEN!!
+            if (isTest) Settings.TEST_TOKEN?: ThrowConfigException("testToken")
+            else Settings.TOKEN
         )
-    } catch (e: KordInitializationException) {
-        println("Token is wrong".color(LogColor.RED))
-        exitProcess(0)
-    }
-    bot.isTest = args.getOrNull(0) == "test"
+    } catch (_: KordInitializationException) { return println("The token is invalid".color(LogColor.RED)) }
+    bot.isTest = isTest
 
     bot.manager = bot.lavakord {
         link {

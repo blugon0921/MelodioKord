@@ -5,7 +5,7 @@ import dev.kord.core.event.interaction.GuildButtonInteractionCreateEvent
 import dev.kord.core.on
 import dev.schlaubi.lavakord.kord.connectAudio
 import dev.schlaubi.lavakord.rest.loadItem
-import kr.blugon.melodio.Main.bot
+import kr.blugon.melodio.bot
 import kr.blugon.melodio.modules.Button
 import kr.blugon.melodio.modules.completePlay
 import kr.blugon.melodio.modules.playDefaultCheck

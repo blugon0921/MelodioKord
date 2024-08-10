@@ -8,7 +8,7 @@ import kr.blugon.kordmand.BooleanOption
 import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.IntegerOption
 import kr.blugon.kordmand.StringOption
-import kr.blugon.melodio.Main.bot
+import kr.blugon.melodio.bot
 import kr.blugon.melodio.modules.Registable
 import kr.blugon.melodio.modules.completePlay
 import kr.blugon.melodio.modules.playDefaultCheck

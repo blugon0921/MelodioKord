@@ -1,12 +1,11 @@
 package kr.blugon.melodio.commands
 
-import dev.kord.core.behavior.interaction.respondEphemeral
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.rest.builder.message.embed
 import kr.blugon.kordmand.Command
 import kr.blugon.kordmand.StringOption
-import kr.blugon.melodio.Main.bot
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.bot
 import kr.blugon.melodio.modules.Modules.buttons
 import kr.blugon.melodio.modules.Modules.timeFormat
 import kr.blugon.melodio.modules.Modules.timeToSecond

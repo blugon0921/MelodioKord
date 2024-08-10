@@ -3,8 +3,8 @@ package kr.blugon.melodio.events
 import dev.kord.core.event.guild.GuildCreateEvent
 import dev.kord.core.on
 import kotlinx.coroutines.flow.toList
-import kr.blugon.melodio.Main.bot
-import kr.blugon.melodio.Main.isReady
+import kr.blugon.melodio.bot
+import kr.blugon.melodio.isReady
 import kr.blugon.melodio.modules.*
 
 class JoinGuild: Event {
