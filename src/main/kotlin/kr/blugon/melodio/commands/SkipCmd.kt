@@ -14,7 +14,7 @@ class SkipCmd: Command, Registable {
     override val command = "skip"
     override val description = "노래를 건너뜁니다"
     override val options = listOf(
-        IntegerOption("count", "건너뛸 개수를 입력해 주세요", 1, 50)
+        IntegerOption("count", "건너뛸 개수를 입력해 주세요", 1, 100)
     )
 
     override suspend fun register() {

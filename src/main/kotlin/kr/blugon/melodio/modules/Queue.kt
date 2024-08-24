@@ -28,9 +28,9 @@ suspend fun Link.addEvent() {
                         link.destroyPlayer()
                         return@on
                     }
+                    link.queue.current = null
                     link.playTrack(link.queue.first().track)
                     if (link.queue.isNotEmpty()) link.queue.removeAt(0)
-                    link.queue.current = null
                 }
                 RepeatMode.TRACK -> { //한곡 반복일때 끝난 곡 다시 재생
                     link.playTrack(track)
@@ -83,7 +83,6 @@ suspend fun Link.skip(count: Int = 1): Track? {
             continue
         }
         track = link.queue[0].track
-        link.playTrack(link.queue[0].track)
         link.queue.removeAt(0)
     }
     link.playTrack(track)

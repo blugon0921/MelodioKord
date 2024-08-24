@@ -11,7 +11,8 @@ java {
     }
 }
 
-val buildPath = File("C:/Users/blugo/Desktop")
+val home = System.getProperty("user.home").replace("\\", "/")
+val buildPath = File("${home}/Desktop")
 val kotlinVersion = kotlin.coreLibrariesVersion
 val mainClass = "${project.group}.${project.name.lowercase()}.MainKt" //Main File
 
