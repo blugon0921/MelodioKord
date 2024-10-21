@@ -15,7 +15,6 @@ import kr.blugon.kordmand.Command
 import kr.blugon.melodio.modules.*
 import java.io.File
 import java.io.FileNotFoundException
-import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -79,10 +78,10 @@ suspend fun main(args: Array<String>) {
         }
         plugins {
             install(LavaSrc)
-//            install(Lyrics)
         }
+    }.apply {
+        addNode("ws://${Settings.LAVALINK_HOST}:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD)
     }
-    bot.manager.addNode("ws://${Settings.LAVALINK_HOST}:${Settings.LAVALINK_PORT}", Settings.LAVALINK_PASSWORD!!)
 
     val rootPackage = Main.javaClass.`package`
 

@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.0.0"
+    kotlin("jvm") version "2.0.21"
     id("com.gradleup.shadow") version "8.3.0"
 }
 
@@ -24,14 +24,15 @@ repositories {
 }
 
 dependencies {
-    compileOnly(kotlin("stdlib"))
-    compileOnly(kotlin("reflect"))
-    implementation("dev.kord:kord-core:latest.release")
-    implementation("dev.schlaubi.lavakord:kord:latest.release")
-    implementation("dev.schlaubi.lavakord:lavasrc-jvm:latest.release")
-//    implementation("dev.schlaubi.lavakord:lyrics-jvm:7.0.1")
-    implementation("org.slf4j:slf4j-simple:latest.release")
+    implementation(kotlin("stdlib"))
+    implementation(kotlin("reflect"))
+
+    implementation("dev.kord:kord-core:0.14.0")
+    implementation("dev.schlaubi.lavakord:kord:7.1.0")
+    implementation("dev.schlaubi.lavakord:lavasrc-jvm:7.1.0")
     implementation("kr.blugon:kordmand:latest.release")
+
+    implementation("org.slf4j:slf4j-simple:latest.release")
     implementation("org.json:json:20240205")
     implementation("io.github.classgraph:classgraph:latest.release")
 }

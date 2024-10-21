@@ -1,7 +1,7 @@
 package kr.blugon.melodio
 
 import dev.kord.common.Color
-import kr.blugon.kordsample.exception.ConfigException
+import kr.blugon.melodio.exception.ConfigException
 import org.json.JSONObject
 import java.io.File
 
