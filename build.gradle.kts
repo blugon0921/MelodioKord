@@ -1,8 +1,8 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.0.21"
-    id("com.gradleup.shadow") version "8.3.0"
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.shadow)
 }
 
 java {
@@ -13,7 +13,6 @@ java {
 
 val home = System.getProperty("user.home").replace("\\", "/")
 val buildPath = File("${home}/Desktop")
-val kotlinVersion = kotlin.coreLibrariesVersion
 val mainClass = "${project.group}.${project.name.lowercase()}.MainKt" //Main File
 
 repositories {
@@ -27,14 +26,14 @@ dependencies {
     implementation(kotlin("stdlib"))
     implementation(kotlin("reflect"))
 
-    implementation("dev.kord:kord-core:0.14.0")
-    implementation("dev.schlaubi.lavakord:kord:7.1.0")
-    implementation("dev.schlaubi.lavakord:lavasrc-jvm:7.1.0")
-    implementation("kr.blugon:kordmand:latest.release")
+    implementation(libs.kord)
+    implementation(libs.lavakord)
+    implementation(libs.lavasrcPlugin)
+    implementation(libs.kordmand)
 
-    implementation("org.slf4j:slf4j-simple:latest.release")
-    implementation("org.json:json:20240205")
-    implementation("io.github.classgraph:classgraph:latest.release")
+    implementation(libs.logger)
+    implementation(libs.json)
+    implementation(libs.classgraph)
 }
 
 tasks {
@@ -48,8 +47,6 @@ tasks {
     shadowJar { this.build() }
 }
 fun Jar.build() {
-    val file = File("./build/libs/${project.name}.jar")
-    if(file.exists()) file.deleteOnExit()
     archiveBaseName.set(project.name) //Project Name
     archiveFileName.set("${project.name}.jar") //Build File Name
     archiveVersion.set(project.version.toString()) //Version

@@ -1,0 +1,27 @@
+[versions]
+kotlin = "2.0.21"
+shadow = "8.3.3"
+#lib
+kord = "0.14.0"
+lavakord = "7.1.0"
+lavasrcPlugin = "7.1.0"
+kordmand = "latest.release"
+
+logger = "latest.release"
+json = "20240205"
+classgraph = "latest.release"
+
+
+[plugins]
+kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+
+[libraries]
+kord = { group = "dev.kord", name = "kord-core", version.ref = "kord" }
+lavakord = { group = "dev.schlaubi.lavakord", name = "kord", version.ref = "lavakord" }
+lavasrcPlugin = { group = "dev.schlaubi.lavakord", name = "lavasrc-jvm", version.ref = "lavasrcPlugin" }
+kordmand = { group = "kr.blugon", name = "kordmand", version.ref = "kordmand" }
+
+logger = { group = "org.slf4j", name = "slf4j-simple", version.ref = "logger" }
+json = { group = "org.json", name = "json", version.ref = "json" }
+classgraph = { group = "io.github.classgraph", name = "classgraph", version.ref = "classgraph" }
