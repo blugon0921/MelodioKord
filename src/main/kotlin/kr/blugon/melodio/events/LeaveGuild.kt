@@ -4,18 +4,18 @@ import dev.kord.core.event.guild.GuildDeleteEvent
 import dev.kord.core.on
 import kotlinx.coroutines.flow.toList
 import kr.blugon.melodio.bot
-import kr.blugon.melodio.modules.Event
+import kr.blugon.melodio.modules.NamedRegistrable
 import kr.blugon.melodio.modules.LogColor
 import kr.blugon.melodio.modules.color
-import kr.blugon.melodio.modules.logger
+import kr.blugon.melodio.modules.Logger
 
-class LeaveGuild: Event {
+class LeaveGuild: NamedRegistrable {
     override val name = "leaveGuild"
 
-    override suspend fun register() {
+    override fun registerEvent() {
         bot.on<GuildDeleteEvent> {
-            logger.log("${LogColor.RED.inColor("✖")} ${guild?.name?.color(LogColor.BLUE)}서버에 추방당했어요")
-            logger.log("${"현재 서버 수:".color(LogColor.GREEN)} ${bot.guilds.toList().size.toString().color(LogColor.BLUE)}")
+            Logger.log("${LogColor.Red.inColor("✖")} ${guild?.name?.color(LogColor.Blue)}서버에 추방당했어요")
+            Logger.log("${"현재 서버 수:".color(LogColor.Green)} ${bot.guilds.toList().size.toString().color(LogColor.Blue)}")
         }
     }
 }

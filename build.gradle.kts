@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.lavakord)
     implementation(libs.lavasrcPlugin)
     implementation(libs.kordmand)
+    implementation(libs.lavakordQueue)
 
     implementation(libs.logger)
     implementation(libs.json)

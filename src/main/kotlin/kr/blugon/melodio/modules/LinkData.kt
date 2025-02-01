@@ -2,19 +2,16 @@ package kr.blugon.melodio.modules
 
 import dev.kord.common.entity.Snowflake
 import dev.schlaubi.lavakord.audio.Link
-import kr.blugon.melodio.modules.Queue.Companion.destroy
+import kr.blugon.lavakordqueue.RepeatMode
+import kr.blugon.lavakordqueue.queue
 import kr.blugon.melodio.events.VoiceStateUpdate.Companion.destoryScopeRunning
 import kr.blugon.melodio.events.VoiceStateUpdate.Companion.playerDestoryScopeRunning
 
 
-private val _repeatMode = HashMap<ULong, RepeatMode>()
 var Link.repeatMode: RepeatMode
-    get() {
-        if(_repeatMode[this.guildId] == null) _repeatMode[this.guildId] = RepeatMode.OFF
-        return _repeatMode[this.guildId]!!
-    }
+    get() = this.queue.repeatMode
     set(value) {
-        _repeatMode[this.guildId] = value
+        this.queue.repeatMode = value
     }
 
 private val _isRepeatedShuffle = HashMap<ULong, Boolean>()
@@ -48,21 +45,15 @@ var Link.voiceChannel: Snowflake?
 
 val ULong.snowflake: Snowflake get() = Snowflake(this)
 
-suspend fun Link.destroyPlayer() {
-    this.queue.destroy()
-    _repeatMode.remove(this.guildId)
+suspend fun Link.destroyPlayer() = this.queue.destroy()
+suspend fun Link._destroyPlayer() {
     _isRepeatedShuffle.remove(this.guildId)
     _repeatedShuffleCount.remove(this.guildId)
     _voiceChannel.remove(this.guildId)
     if(this.destoryScopeRunning) {
         playerDestoryScopeRunning.remove(this.guildId)
     }
+    Buttons.deleteControllerInChannel(this.guildId)
     this.destroy()
     this.disconnectAudio()
-}
-
-enum class RepeatMode {
-    OFF,
-    TRACK,
-    QUEUE
 }

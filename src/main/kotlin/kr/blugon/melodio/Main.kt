@@ -9,19 +9,17 @@ import dev.schlaubi.lavakord.LavaKord
 import dev.schlaubi.lavakord.kord.lavakord
 import dev.schlaubi.lavakord.plugins.lavasrc.LavaSrc
 import io.github.classgraph.ClassGraph
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import kr.blugon.kordmand.Command
+import kr.blugon.melodio.buttons.Button
+import kr.blugon.melodio.exception.ConfigException
 import kr.blugon.melodio.modules.*
-import java.io.File
-import java.io.FileNotFoundException
 import kotlin.time.Duration.Companion.seconds
 
 
 object Main
 
 //버전
-const val version = "v1.1.12"
+const val version = "v1.2.0"
 
 lateinit var bot: Kord
 private lateinit var _lavalink: LavaKord
@@ -39,37 +37,17 @@ var Kord.isReady: Boolean
         _isReady[this] = value
     }
 
-private val _isTestBot = HashMap<Kord, Boolean>()
-var Kord.isTest: Boolean
-    get() {
-        if(_isTestBot[this] == null) _isTestBot[this] = false
-        return _isTestBot[this]!!
-    }
-    set(value) {
-        _isTestBot[this] = value
-    }
-
 
 suspend fun main(args: Array<String>) {
-    val settingsFile = File("config.json")
-    if(!settingsFile.exists()) { //config.json is not exist
-        val resource = ClassLoader.getSystemClassLoader().getResource("config.json")?.readText() ?: throw FileNotFoundException("Failed to load config.json file")
-        withContext(Dispatchers.IO) {
-            settingsFile.createNewFile()
-            settingsFile.writeText(resource)
-        }
-        return println("Please edit config.json")
-    }
     val isTest = args.contains("-test")
-
     if(args.contains("-registerCommand")) return registerCommands(isTest)
+    Settings.checkExistConfig()
     bot = try {
         Kord(
-            if (isTest) Settings.TEST_TOKEN?: ThrowConfigException("testToken")
+            if (isTest) Settings.TEST_TOKEN?: throw ConfigException("testToken")
             else Settings.TOKEN
         )
-    } catch (_: KordInitializationException) { return println("The token is invalid".color(LogColor.RED)) }
-    bot.isTest = isTest
+    } catch (_: KordInitializationException) { throw ConfigException("The token is invalid") }
 
     bot.manager = bot.lavakord {
         link {
@@ -86,21 +64,21 @@ suspend fun main(args: Array<String>) {
     val rootPackage = Main.javaClass.`package`
 
     //Commands
-    rootPackage.classesRegistable<Registable>("commands").forEach {
-        if(it is Command) logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.CYAN.inColor(it.command)} 커맨드 불러오기 성공")
-        it.register()
+    rootPackage.botArgClasses<Command>("commands", bot).forEach {
+        Logger.log("${LogColor.Cyan.inColor("✔")} ${LogColor.Cyan.inColor(it.command)} 커맨드 불러오기 성공")
+        it.registerEvent()
     }
 
     //Events
-    rootPackage.classesRegistable<Event>("events").forEach {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.BLUE.inColor(it.name)} 이벤트 불러오기 성공")
-        it.register()
+    rootPackage.registrableClasses<NamedRegistrable>("events").forEach {
+        Logger.log("${LogColor.Cyan.inColor("✔")} ${LogColor.Blue.inColor(it.name)} 이벤트 불러오기 성공")
+        it.registerEvent()
     }
 
     //Buttons
-    rootPackage.classesRegistable<Button>("buttons").forEach {
-        logger.log("${LogColor.CYAN.inColor("✔")} ${LogColor.YELLOW.inColor(it.name)} 버튼 불러오기 성공")
-        it.register()
+    rootPackage.botArgClasses<Button>("buttons", bot).forEach {
+        Logger.log("${LogColor.Cyan.inColor("✔")} ${LogColor.Yellow.inColor(it.name)} 버튼 불러오기 성공")
+        it.registerEvent()
     }
 
     @OptIn(PrivilegedIntent::class)
@@ -114,6 +92,7 @@ suspend fun main(args: Array<String>) {
         presence {
             status = PresenceStatus.Online
             playing("/play | $version")
+//            playing("/play")
         }
     }
 }
@@ -131,20 +110,37 @@ inline fun <reified T> Package.classes(more: String = ""): List<Class<T>> {
     return classes
 }
 
-inline fun <reified T> Package.classesRegistable(more: String = ""): List<T> {
-    val registable = ArrayList<T>()
+inline fun <reified T> Package.registrableClasses(more: String = ""): List<T> {
+    val registrable = ArrayList<T>()
 
     var name = "${this.name}.${more}"
     if(!name.startsWith("/")) name = "/$name"
     name.replace(".", "/")
 
-    this.classes<T>(more).forEach { clazz ->
+    this.classes<T>(more).forEach {
         try {
-            val instance = clazz.getDeclaredConstructor().newInstance()
-            registable.add(instance as T)
-        } catch (e: Exception) {
-            return@forEach
-        }
+            val instance = it.getConstructor().newInstance()
+            registrable.add(instance as T)
+        } catch (e: Exception) { return@forEach }
     }
-    return registable
+    return registrable
+}
+
+inline fun <reified T> Package.botArgClasses(
+    more: String = "",
+    bot: Kord,
+): List<T> {
+    val registrable = ArrayList<T>()
+
+    var name = "${this.name}.${more}"
+    if(!name.startsWith("/")) name = "/$name"
+    name.replace(".", "/")
+
+    this.classes<T>(more).forEach {
+        try {
+            val instance = it.getConstructor(Kord::class.java).newInstance(bot)
+            registrable.add(instance)
+        } catch (e: Exception) { return@forEach }
+    }
+    return registrable
 }

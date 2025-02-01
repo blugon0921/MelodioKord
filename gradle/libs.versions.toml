@@ -2,10 +2,11 @@
 kotlin = "2.0.21"
 shadow = "8.3.3"
 #lib
-kord = "0.14.0"
-lavakord = "7.1.0"
-lavasrcPlugin = "7.1.0"
-kordmand = "latest.release"
+kord = "0.15.0"
+lavakord = "9.1.0"
+lavasrcPlugin = "9.1.0"
+kordmand = "0.0.7"
+lavakordQueue = "0.0.8"
 
 logger = "latest.release"
 json = "20240205"
@@ -21,6 +22,7 @@ kord = { group = "dev.kord", name = "kord-core", version.ref = "kord" }
 lavakord = { group = "dev.schlaubi.lavakord", name = "kord", version.ref = "lavakord" }
 lavasrcPlugin = { group = "dev.schlaubi.lavakord", name = "lavasrc-jvm", version.ref = "lavasrcPlugin" }
 kordmand = { group = "kr.blugon", name = "kordmand", version.ref = "kordmand" }
+lavakordQueue = { group = "kr.blugon", name = "lavakord-queue", version.ref = "lavakordQueue" }
 
 logger = { group = "org.slf4j", name = "slf4j-simple", version.ref = "logger" }
 json = { group = "org.json", name = "json", version.ref = "json" }

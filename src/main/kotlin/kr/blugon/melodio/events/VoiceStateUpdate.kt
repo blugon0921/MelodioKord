@@ -9,15 +9,15 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kr.blugon.lavakordqueue.queue
 import kr.blugon.melodio.bot
 import kr.blugon.melodio.manager
-import kr.blugon.melodio.modules.Event
+import kr.blugon.melodio.modules.NamedRegistrable
 import kr.blugon.melodio.modules.destroyPlayer
-import kr.blugon.melodio.modules.queue
 import kr.blugon.melodio.modules.voiceChannel
 
 @OptIn(DelicateCoroutinesApi::class)
-class VoiceStateUpdate: Event {
+class VoiceStateUpdate: NamedRegistrable {
     override val name = "voiceStateUpdate"
 
     companion object {
@@ -32,42 +32,43 @@ class VoiceStateUpdate: Event {
             }
     }
 
-    override suspend fun register() {
+    override fun registerEvent() {
         bot.on<VoiceStateUpdateEvent> {
             val link = bot.manager.getLink(state.guildId.value)
+            val user = bot.getUser(state.userId)
+
+            if(state.getChannelOrNull() == null && state.userId == bot.selfId) {
+                link.destroyPlayer()
+                return@on
+            }
 
             if(old == null) return@on
             if(link.state != Link.State.CONNECTED) return@on
 
-            when(bot.getUser(state.userId)?.isBot) {
-                true, null -> return@on
-                else -> {}
-            }
-            if(old?.channelId != null && state.channelId == null && state.userId == bot.selfId) {
-                link.destroyPlayer()
-                return@on
-            }
+            if(user?.isBot != false && bot.selfId != state.userId) return@on
             val old = old!!
+            val oldChannel = old.getChannelOrNull()
+            val newChannel = state.getChannelOrNull()
 
             val stateChange = object {
                 lateinit var type: VoiceUpdateType
                 var channel: BaseVoiceChannelBehavior? = null
                 val members = ArrayList<Member>()
             }
-            if(old.getChannelOrNull() == null && state.getChannelOrNull() != null) stateChange.type = VoiceUpdateType.JOIN
-            if(old.getChannelOrNull() != null && state.getChannelOrNull() == null) stateChange.type = VoiceUpdateType.LEAVE
-            if(old.getChannelOrNull() != null && state.getChannelOrNull() != null) stateChange.type = VoiceUpdateType.MOVE
-            if(old.getChannelOrNull() == null && state.getChannelOrNull() == null) return@on
-//            if(state.data.mute && !old.data.mute) return@on link.player.pause(true)
-//            if(!state.data.mute && old.data.mute) return@on link.player.pause(false)
-            if(state.data.mute != old.data.mute) return@on
-            if(state.data.selfVideo != old.data.selfVideo) return@on
-            if(state.data.selfMute != old.data.selfMute) return@on
-            if(state.data.selfStream.discordBoolean != old.data.selfStream.discordBoolean) return@on
-            if(stateChange.type == VoiceUpdateType.MOVE) {
-                link.voiceChannel = state.channelId
-//                stateChange.type = VoiceUpdateType.LEAVE
+            if(oldChannel == null && newChannel != null) stateChange.type = VoiceUpdateType.JOIN
+            if(oldChannel != null && newChannel == null) stateChange.type = VoiceUpdateType.LEAVE
+            if(oldChannel != null && newChannel != null) {
+                if(oldChannel.id != newChannel.id) {
+                    stateChange.type = VoiceUpdateType.MOVE
+                    link.voiceChannel = newChannel.id
+                }
+                else stateChange.type = VoiceUpdateType.ETC
             }
+            if((oldChannel == null && newChannel == null) || stateChange.type == VoiceUpdateType.ETC) {
+                link.destroyPlayer()
+                return@on
+            }
+
             if(stateChange.type == VoiceUpdateType.JOIN) stateChange.channel = state.getChannelOrNull()
             if(stateChange.type == VoiceUpdateType.LEAVE) stateChange.channel = old.getChannelOrNull()
             if(stateChange.type == VoiceUpdateType.MOVE) stateChange.channel = state.getChannelOrNull()
@@ -122,10 +123,11 @@ class VoiceStateUpdate: Event {
             }
         }
     }
-}
 
-enum class VoiceUpdateType {
-    JOIN,
-    LEAVE,
-    MOVE
+    private enum class VoiceUpdateType {
+        JOIN,
+        LEAVE,
+        MOVE,
+        ETC,
+    }
 }

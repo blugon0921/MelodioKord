@@ -4,9 +4,13 @@ import dev.arbjerg.lavalink.protocol.v4.TrackInfo
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.common.entity.Snowflake
+import dev.kord.core.cache.data.ComponentData
+import dev.kord.core.entity.Message
 import dev.kord.core.entity.interaction.GuildComponentInteraction
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.message.EmbedBuilder
+import kr.blugon.lavakordqueue.TrackSourceType
+import kr.blugon.lavakordqueue.sourceType
 import kr.blugon.melodio.modules.Modules.stringLimit
 import java.text.SimpleDateFormat
 import java.util.*
@@ -14,8 +18,6 @@ import kotlin.math.floor
 import kotlin.time.Duration
 
 object Modules {
-    const val DEFAULT_VOLUME = 50
-
     fun stringLimit(text: String, len: Int = 30, lastText: String = "..."): String {
         return if(text.length > len) text.substring(0..len)+lastText
         else text
@@ -80,35 +82,6 @@ object Modules {
         }
         return (hour * 3600) + (minute * 60) + second
     }
-
-    val buttons: ActionRowBuilder
-        get() {
-            return ActionRowBuilder().apply {
-                this.interactionButton(ButtonStyle.Secondary, "stopButton") {
-                    this.label = "정지"
-                    this.emoji = DiscordPartialEmoji(name = "⏹\uFE0F") //⏹️
-                }
-                this.interactionButton(ButtonStyle.Secondary, "pauseButton") {
-                    this.label = "일시정지"
-                    this.emoji = DiscordPartialEmoji(name = "⏯\uFE0F") //⏯️
-                }
-                this.interactionButton(ButtonStyle.Secondary, "repeatQueueButton") {
-                    this.label = "대기열반복"
-                    this.emoji = DiscordPartialEmoji(name = "\uD83D\uDD01") //🔁
-                }
-                this.interactionButton(ButtonStyle.Secondary, "skipButton") {
-                    this.label = "다음곡"
-                    this.emoji = DiscordPartialEmoji(name = "⏭\uFE0F") //⏭️
-                }
-            }
-        }
-
-    val addThisButtons = buttons.apply {
-        this.interactionButton(ButtonStyle.Secondary, "addThisButton") {
-            this.label = "해당트랙추가"
-            this.emoji = DiscordPartialEmoji(id = Snowflake(1104057502120824912)) //<:plus:1104057502120824912>
-        }
-    }
 }
 
 fun String.hyperlink(url: String, isBold: Boolean = true, stringLimit: Boolean = true): String {
@@ -122,7 +95,7 @@ fun String.hyperlink(url: String, isBold: Boolean = true, stringLimit: Boolean =
 val TrackInfo.titleWithArtist: String
     get() {
         return "${
-            if(this.sourceType == TrackSourceType.Spotify) "${this.author} - "
+            if(this.sourceType != TrackSourceType.Youtube) "${this.author} - "
             else ""
         }${this.title}"
     }
@@ -149,3 +122,5 @@ fun EmbedBuilder.interactedUser(interaction: GuildComponentInteraction) {
         else interaction.user.avatar!!.cdnUrl.toUrl()
     }
 }
+
+val Message.components: List<ComponentData?>? get() = this.data.components.value?.firstOrNull()?.components?.value

@@ -1,53 +1,52 @@
 package kr.blugon.melodio.commands
 
+import dev.kord.core.Kord
 import dev.arbjerg.lavalink.protocol.v4.Track
-import dev.kord.common.entity.ButtonStyle
 import dev.kord.core.behavior.interaction.respondPublic
 import dev.kord.rest.builder.component.ActionRowBuilder
-import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
 import kr.blugon.kordmand.Command
+import kr.blugon.lavakordqueue.RepeatMode
+import kr.blugon.lavakordqueue.queue
 import kr.blugon.melodio.Settings
-import kr.blugon.melodio.bot
 import kr.blugon.melodio.modules.*
-import kr.blugon.melodio.modules.Modules.buttons
 import kr.blugon.melodio.modules.Modules.timeFormat
 import kotlin.math.ceil
+import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 
-class QueueCmd: Command, Registable {
+class QueueCmd(bot: Kord): Command(bot) {
     override val command = "queue"
-    override val description = "현재 대기열을 보여줍니다"
+    override val description = "대기열을 표시합니다"
     override val options = null
 
-    override suspend fun register() {
-        onRun(bot) {
-            val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return@onRun
 
-            val pages = queuePage(link, current)
+    override suspend fun GuildChatInputCommandInteractionCreateEvent.onRun() {
+        val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return
 
-            interaction.respondPublic {
-                embed {
-                    title = ":clipboard: 현재 대기열 [${timeFormat(link.queue.duration)}]"
-                    color = Settings.COLOR_NORMAL
-                    description = pages[0]
-                    footer {
-                        text = "페이지 1/${pages.size}${
-                            when(link.repeatMode) {
-                                RepeatMode.TRACK -> "┃🔂 현재 곡 반복중"
-                                RepeatMode.QUEUE -> "┃🔂 대기열 반복중"
-                                else -> ""
-                            }
-                        }"
-                    }
+        val pages = queuePage(link, current)
+
+        interaction.respondPublic {
+            embed {
+                title = ":clipboard: 대기열 [${timeFormat(link.queue.duration)}]"
+                color = Settings.COLOR_NORMAL
+                description = pages[0]
+                footer {
+                    text = "페이지 1/${pages.size}${
+                        when(link.repeatMode) {
+                            RepeatMode.TRACK -> "┃🔂 현재 곡 반복중"
+                            RepeatMode.QUEUE -> "┃🔂 대기열 반복중"
+                            else -> ""
+                        }
+                    }"
                 }
-                val (beforePageButton, nextPageButton, reloadPageButton) = QueueButtons.buttons
-                components = mutableListOf(ActionRowBuilder().apply {
-                    this.components.add(beforePageButton.apply { this.disabled = true })
-                    this.components.add(nextPageButton.apply { if(pages.size == 1) this.disabled = true })
-                    this.components.add(reloadPageButton)
-                }, buttons)
             }
+            val (beforePageButton, nextPageButton, reloadPageButton) = Buttons.queue
+            components = mutableListOf(ActionRowBuilder().apply {
+                this.components.add(beforePageButton.apply { this.disabled = true })
+                this.components.add(nextPageButton.apply { if(pages.size == 1) this.disabled = true })
+                this.components.add(reloadPageButton)
+            })
         }
     }
 }
@@ -61,7 +60,7 @@ fun queuePage(link: Link, current: Track, itemCountInPage: Int = 20): List<Strin
             val beforeCount = count
             inner@for(i in beforeCount until itemCountInPage+beforeCount) {
                 try {
-                    val track = link.queue[i].track
+                    val track = link.queue[i]
                     pageDescription += "${"${i+1}.".bold}ﾠ${track.info.displayTitle}\n"
                     count++
                 } catch (_: IndexOutOfBoundsException) { break@inner }
@@ -74,34 +73,9 @@ fun queuePage(link: Link, current: Track, itemCountInPage: Int = 20): List<Strin
     } else { //1페이지
         var description = "💿 ${current.info.displayTitle}\n\n"
         for(i in 0 until link.queue.size) {
-            description += "${"${i+1}.".bold}ﾠ${link.queue[i].track.info.displayTitle}\n"
+            description += "${"${i+1}.".bold}ﾠ${link.queue[i].info.displayTitle}\n"
         }
         page.add(description)
     }
     return page
-}
-
-
-class QueueButtons {
-    val beforePageButton: ButtonBuilder
-        get() = ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "beforePage").apply {
-            this.label = "◀이전"
-        }
-    val nextPageButton: ButtonBuilder
-        get() = ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "nextPage").apply {
-            this.label = "다음▶"
-        }
-    val reloadPageButton: ButtonBuilder
-        get() = ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "reloadPage").apply {
-            this.label = "🔄️새로고침"
-        }
-
-    operator fun component1(): ButtonBuilder = beforePageButton
-    operator fun component2(): ButtonBuilder = nextPageButton
-    operator fun component3(): ButtonBuilder = reloadPageButton
-
-    companion object {
-        val buttons: QueueButtons
-            get() = QueueButtons()
-    }
 }
