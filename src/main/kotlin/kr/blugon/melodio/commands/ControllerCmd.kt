@@ -19,5 +19,6 @@ class ControllerCmd(bot: Kord): Command(bot) {
         val (voiceChannel, link, player, current) = interaction.defaultCheck()?: return
 
         Buttons.reloadControllerInChannel(link, interaction.channel)
+        interaction.deferEphemeralResponse()
     }
 }

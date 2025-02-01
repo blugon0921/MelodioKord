@@ -3,30 +3,37 @@ package kr.blugon.melodio.modules
 import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.common.entity.Snowflake
-import dev.kord.core.behavior.GuildBehavior
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
-import dev.kord.core.entity.Guild
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.MessageChannel
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.component.ButtonBuilder
+import dev.kord.rest.builder.message.embed
 import dev.kord.rest.request.KtorRequestException
 import dev.schlaubi.lavakord.audio.Link
 import kr.blugon.lavakordqueue.RepeatMode
 import kr.blugon.lavakordqueue.queue
+import kr.blugon.melodio.Settings
 import kr.blugon.melodio.bot
+import kr.blugon.melodio.commands.queuePage
+import kr.blugon.melodio.modules.Modules.timeFormat
 
 
 object Buttons {
 
     var beforeControllMessage = mutableMapOf<Snowflake, MutableMap<Snowflake, Message>>()
-    suspend fun deleteControllerInChannel(guildId: ULong) {
+    suspend fun deleteAllControllerInGuild(guildId: ULong) {
         val id = Snowflake(guildId)
         if(beforeControllMessage[id] != null) {
             beforeControllMessage[id]!!.forEach {
-                deleteControllerInChannel(bot.getChannelOf<MessageChannel>(it.key)?: return@forEach)
+                beforeControllMessage[id]!!.forEach { (c, message) ->
+                    try {
+                        message.delete()
+                    } catch (_: KtorRequestException) {}
+                }
             }
+            beforeControllMessage.remove(id)
         }
     }
     suspend fun deleteControllerInChannel(channel: MessageChannelBehavior) {
@@ -41,7 +48,28 @@ object Buttons {
         if(beforeControllMessage[guild.id] == null) beforeControllMessage[guild.id] = mutableMapOf()
         deleteControllerInChannel(channel)
         beforeControllMessage[guild.id]!![channel.id] = channel.createMessage {
-            components = mutableListOf(controlls(link))
+            val pages = queuePage(link, link.queue.current!!)
+            embed {
+                title = ":clipboard: 대기열 [${timeFormat(link.queue.duration)}]"
+                color = Settings.COLOR_NORMAL
+                description = pages[0]
+                footer {
+                    text = "페이지 1/${pages.size}${
+                        when(link.repeatMode) {
+                            RepeatMode.TRACK -> "┃🔂 현재 곡 반복중"
+                            RepeatMode.QUEUE -> "┃🔂 대기열 반복중"
+                            else -> ""
+                        }
+                    }"
+                }
+            }
+            val (beforePageButton, nextPageButton, reloadPageButton) = queue
+            components = mutableListOf(ActionRowBuilder().apply {
+                this.components.add(beforePageButton.apply { this.disabled = true })
+                this.components.add(nextPageButton.apply { if(pages.size == 1) this.disabled = true })
+                this.components.add(reloadPageButton)
+            }, controlls(link))
+//            components = mutableListOf(controlls(link))
         }
     }
 

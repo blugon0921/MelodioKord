@@ -62,7 +62,7 @@ class BeforePageBtn(bot: Kord): Button(bot) {
                     else interaction.user.avatar!!.cdnUrl.toUrl()
                 }
             }
-            components = mutableListOf(pageButtons)
+            components = mutableListOf(pageButtons, Buttons.controlls(link))
         }
     }
 }

@@ -1,55 +1,49 @@
 package kr.blugon.melodio.commands
 
-import dev.kord.core.Kord
 import dev.arbjerg.lavalink.protocol.v4.Track
-import dev.kord.core.behavior.interaction.respondPublic
-import dev.kord.rest.builder.component.ActionRowBuilder
-import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
-import kr.blugon.kordmand.Command
-import kr.blugon.lavakordqueue.RepeatMode
 import kr.blugon.lavakordqueue.queue
-import kr.blugon.melodio.Settings
-import kr.blugon.melodio.modules.*
-import kr.blugon.melodio.modules.Modules.timeFormat
+import kr.blugon.melodio.modules.bold
+import kr.blugon.melodio.modules.displayTitle
 import kotlin.math.ceil
-import dev.kord.core.event.interaction.GuildChatInputCommandInteractionCreateEvent
 
-class QueueCmd(bot: Kord): Command(bot) {
-    override val command = "queue"
-    override val description = "대기열을 표시합니다"
-    override val options = null
-
-
-    override suspend fun GuildChatInputCommandInteractionCreateEvent.onRun() {
-        val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return
-
-        val pages = queuePage(link, current)
-
-        interaction.respondPublic {
-            embed {
-                title = ":clipboard: 대기열 [${timeFormat(link.queue.duration)}]"
-                color = Settings.COLOR_NORMAL
-                description = pages[0]
-                footer {
-                    text = "페이지 1/${pages.size}${
-                        when(link.repeatMode) {
-                            RepeatMode.TRACK -> "┃🔂 현재 곡 반복중"
-                            RepeatMode.QUEUE -> "┃🔂 대기열 반복중"
-                            else -> ""
-                        }
-                    }"
-                }
-            }
-            val (beforePageButton, nextPageButton, reloadPageButton) = Buttons.queue
-            components = mutableListOf(ActionRowBuilder().apply {
-                this.components.add(beforePageButton.apply { this.disabled = true })
-                this.components.add(nextPageButton.apply { if(pages.size == 1) this.disabled = true })
-                this.components.add(reloadPageButton)
-            })
-        }
-    }
-}
+//class QueueCmd(bot: Kord): Command(bot) {
+//    override val command = "queue"
+//    override val description = "대기열을 표시합니다"
+//    override val options = null
+//
+//
+//    override suspend fun GuildChatInputCommandInteractionCreateEvent.onRun() {
+//        val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return
+//
+////        val pages = queuePage(link, current)
+//
+////        interaction.respondPublic {
+////            embed {
+////                title = ":clipboard: 대기열 [${timeFormat(link.queue.duration)}]"
+////                color = Settings.COLOR_NORMAL
+////                description = pages[0]
+////                footer {
+////                    text = "페이지 1/${pages.size}${
+////                        when(link.repeatMode) {
+////                            RepeatMode.TRACK -> "┃🔂 현재 곡 반복중"
+////                            RepeatMode.QUEUE -> "┃🔂 대기열 반복중"
+////                            else -> ""
+////                        }
+////                    }"
+////                }
+////            }
+////            val (beforePageButton, nextPageButton, reloadPageButton) = Buttons.queue
+////            components = mutableListOf(ActionRowBuilder().apply {
+////                this.components.add(beforePageButton.apply { this.disabled = true })
+////                this.components.add(nextPageButton.apply { if(pages.size == 1) this.disabled = true })
+////                this.components.add(reloadPageButton)
+////            })
+////        }
+//        Buttons.reloadControllerInChannel(link, interaction.channel)
+//        interaction.deferEphemeralResponse()
+//    }
+//}
 
 fun queuePage(link: Link, current: Track, itemCountInPage: Int = 20): List<String> {
     val page = ArrayList<String>()

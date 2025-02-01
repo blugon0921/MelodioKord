@@ -44,4 +44,5 @@ suspend fun registerCommands(isTest: Boolean = false) {
         }
         Logger.log("${LogColor.Cyan.inColor("✔")} ${LogColor.Cyan.inColor(command.command)} 커맨드 등록 완료")
     }
+    bot.logout()
 }

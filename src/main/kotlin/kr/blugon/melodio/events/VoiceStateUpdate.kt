@@ -5,10 +5,7 @@ import dev.kord.core.entity.Member
 import dev.kord.core.event.user.VoiceStateUpdateEvent
 import dev.kord.core.on
 import dev.schlaubi.lavakord.audio.Link
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kr.blugon.lavakordqueue.queue
 import kr.blugon.melodio.bot
 import kr.blugon.melodio.manager
@@ -38,7 +35,7 @@ class VoiceStateUpdate: NamedRegistrable {
             val user = bot.getUser(state.userId)
 
             if(state.getChannelOrNull() == null && state.userId == bot.selfId) {
-                link.destroyPlayer()
+//                link.destroyPlayer()
                 return@on
             }
 
@@ -58,11 +55,11 @@ class VoiceStateUpdate: NamedRegistrable {
             if(oldChannel == null && newChannel != null) stateChange.type = VoiceUpdateType.JOIN
             if(oldChannel != null && newChannel == null) stateChange.type = VoiceUpdateType.LEAVE
             if(oldChannel != null && newChannel != null) {
+                stateChange.type = VoiceUpdateType.MOVE
                 if(oldChannel.id != newChannel.id) {
-                    stateChange.type = VoiceUpdateType.MOVE
                     link.voiceChannel = newChannel.id
                 }
-                else stateChange.type = VoiceUpdateType.ETC
+//                else stateChange.type = VoiceUpdateType.ETC
             }
             if((oldChannel == null && newChannel == null) || stateChange.type == VoiceUpdateType.ETC) {
                 link.destroyPlayer()

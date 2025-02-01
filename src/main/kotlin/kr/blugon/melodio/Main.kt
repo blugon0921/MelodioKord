@@ -19,7 +19,7 @@ import kotlin.time.Duration.Companion.seconds
 object Main
 
 //버전
-const val version = "v1.2.0"
+const val version = "v1.2.1"
 
 lateinit var bot: Kord
 private lateinit var _lavalink: LavaKord
@@ -41,6 +41,7 @@ var Kord.isReady: Boolean
 suspend fun main(args: Array<String>) {
     val isTest = args.contains("-test")
     if(args.contains("-registerCommand")) return registerCommands(isTest)
+    if(args.contains("-deleteCommand")) return deleteCommands(isTest)
     Settings.checkExistConfig()
     bot = try {
         Kord(

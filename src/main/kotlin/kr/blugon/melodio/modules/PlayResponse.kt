@@ -89,7 +89,7 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(
         }
         is LoadResult.SearchResult -> { //검색
             val track = item.data.tracks.firstOrNull()?: run {
-                if(link.queue.current == null) link.destroy()
+                if(link.queue.current == null) link.destroyPlayer()
                 return respondEmbed(errorEmbed(Messages.NO_SEARCH_RESULT))
             }
             link.queue.add(track, if(index == -1) link.queue.size else index)
@@ -119,11 +119,11 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(
             }
         }
         is LoadResult.NoMatches -> {
-            if(link.queue.current == null) link.destroy()
+            if(link.queue.current == null) link.destroyPlayer()
             return respondEmbed(errorEmbed(Messages.NO_SEARCH_RESULT))
         }
         is LoadResult.LoadFailed -> {
-            if(link.queue.current == null) link.destroy()
+            if(link.queue.current == null) link.destroyPlayer()
             Logger.error(item.data)
             return respondEmbed(errorEmbed(Messages.SEARCH_EXCEPTION))
         }

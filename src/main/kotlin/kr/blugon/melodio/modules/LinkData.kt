@@ -53,7 +53,7 @@ suspend fun Link._destroyPlayer() {
     if(this.destoryScopeRunning) {
         playerDestoryScopeRunning.remove(this.guildId)
     }
-    Buttons.deleteControllerInChannel(this.guildId)
+    Buttons.deleteAllControllerInGuild(this.guildId)
     this.destroy()
     this.disconnectAudio()
 }
