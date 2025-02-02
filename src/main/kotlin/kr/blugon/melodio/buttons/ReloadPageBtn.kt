@@ -21,27 +21,8 @@ class ReloadPageBtn(bot: Kord): Button(bot) {
     override suspend fun GuildButtonInteractionCreateEvent.onClick() {
         val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return
 
-        val (beforePageButton, nextPageButton, reloadPageButton) = Buttons.queue
-
-        val footerText = (if(interaction.message.embeds[0].footer == null) "undefined"
-                        else interaction.message.embeds[0].footer!!.text.replace(" ", "")).split("|").last().split("┃").first()
-        var nowPage = footerText.split("/")[0].replace("페이지", "").toInt()
+        val (queueButtons, nowPage) = Buttons.queue(interaction, link)
         val pages = queuePage(link, current)
-
-        if(nowPage <= 1) {
-            nowPage = 1
-            beforePageButton.disabled = true
-        }
-        if(pages.size <= nowPage) {
-            nowPage = pages.size
-            nextPageButton.disabled = true
-        }
-
-        val pageButtons = ActionRowBuilder().apply {
-            components.add(beforePageButton)
-            components.add(nextPageButton)
-            components.add(reloadPageButton)
-        }
 
         interaction.updatePublicMessage {
             embed {
@@ -60,7 +41,7 @@ class ReloadPageBtn(bot: Kord): Button(bot) {
                     else interaction.user.avatar!!.cdnUrl.toUrl()
                 }
             }
-            components = mutableListOf(pageButtons, Buttons.controlls(link))
+            components = mutableListOf(queueButtons, Buttons.controlls(link))
         }
     }
 }

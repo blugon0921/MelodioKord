@@ -6,7 +6,7 @@ kord = "0.15.0"
 lavakord = "9.1.0"
 lavasrcPlugin = "9.1.0"
 kordmand = "0.0.7"
-lavakordQueue = "0.0.8"
+lavakordQueue = "0.0.9"
 
 logger = "latest.release"
 json = "20240205"

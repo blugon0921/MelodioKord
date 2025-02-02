@@ -17,8 +17,10 @@ class ShuffleBtn(bot: Kord): Button(bot) {
             link.repeatedShuffleCount = 0
             link.queue.shuffle()
         }
+
+        val (queueButtons, _) = Buttons.queue(interaction, link)
         interaction.updatePublicMessage {
-            components = mutableListOf(Buttons.controlls(link))
+            components = mutableListOf(queueButtons, Buttons.controlls(link))
         }
     }
 }

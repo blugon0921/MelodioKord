@@ -11,6 +11,7 @@ import dev.kord.rest.builder.message.embed
 import kr.blugon.lavakordqueue.RepeatMode
 import kr.blugon.lavakordqueue.queue
 import kr.blugon.melodio.Settings
+import kr.blugon.melodio.commands.queuePage
 import kr.blugon.melodio.modules.*
 
 class RepeatBtn(bot: Kord): Button(bot) {
@@ -25,8 +26,10 @@ class RepeatBtn(bot: Kord): Button(bot) {
             RepeatMode.TRACK -> link.queue.repeatMode = RepeatMode.OFF
         }
 
+        val (queueButtons, _) = Buttons.queue(interaction, link)
+
         interaction.updatePublicMessage {
-            components = mutableListOf(Buttons.controlls(link))
+            components = mutableListOf(queueButtons, Buttons.controlls(link))
         }
     }
 }

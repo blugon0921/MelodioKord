@@ -7,6 +7,7 @@ import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.MessageChannel
+import dev.kord.core.entity.interaction.GuildButtonInteraction
 import dev.kord.rest.builder.component.ActionRowBuilder
 import dev.kord.rest.builder.component.ButtonBuilder
 import dev.kord.rest.builder.message.embed
@@ -114,7 +115,30 @@ object Buttons {
             }
         }
 
-    val queue: Triple<ButtonBuilder, ButtonBuilder, ButtonBuilder>
+    fun queue(interaction: GuildButtonInteraction, link: Link, appendPage: Int = 0): Pair<ActionRowBuilder, Int> {
+        val (beforePageButton, nextPageButton, reloadPageButton) = queue
+
+        val footerText = (if(interaction.message.embeds[0].footer == null) "undefined"
+        else interaction.message.embeds[0].footer!!.text.replace(" ", "")).split("|").last().split("┃").first()
+        var nowPage = footerText.split("/")[0].replace("페이지", "").toInt()+appendPage
+        val pages = queuePage(link, link.queue.current!!)
+
+        if(nowPage <= 1) {
+            nowPage = 1
+            beforePageButton.disabled = true
+        }
+        if(pages.size <= nowPage) {
+            nowPage = pages.size
+            nextPageButton.disabled = true
+        }
+
+        return ActionRowBuilder().apply {
+            components.add(beforePageButton)
+            components.add(nextPageButton)
+            components.add(reloadPageButton)
+        } to nowPage
+    }
+    private val queue: Triple<ButtonBuilder, ButtonBuilder, ButtonBuilder>
         get() {
             return Triple(
                 ButtonBuilder.InteractionButtonBuilder(ButtonStyle.Primary, "beforePage").apply {

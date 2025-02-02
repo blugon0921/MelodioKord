@@ -21,29 +21,31 @@ class BeforePageBtn(bot: Kord): Button(bot) {
     override suspend fun GuildButtonInteractionCreateEvent.onClick() {
         val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return
 
-        val footerText = when(interaction.message.embeds[0].footer == null) {
-            true -> "undefined"
-            false -> interaction.message.embeds[0].footer!!.text.replace(" ", "")
-        }.split("|").last().split("┃").first()
-        var nowPage = footerText.split("/")[0].replace("페이지", "").toInt()-1
+//        val footerText = when(interaction.message.embeds[0].footer == null) {
+//            true -> "undefined"
+//            false -> interaction.message.embeds[0].footer!!.text.replace(" ", "")
+//        }.split("|").last().split("┃").first()
+//        var nowPage = footerText.split("/")[0].replace("페이지", "").toInt()-1
+//        val pages = queuePage(link, current)
+//
+//        val (beforePageButton, nextPageButton, reloadPageButton) = Buttons.queue
+//
+//        if(nowPage <= 1) {
+//            nowPage = 1
+//            beforePageButton.disabled = true
+//        }
+//        if(pages.size <= 1) {
+//            nextPageButton.disabled = true
+//            beforePageButton.disabled = true
+//        }
+//
+//        val pageButtons = ActionRowBuilder().apply {
+//            components.add(beforePageButton)
+//            components.add(nextPageButton)
+//            components.add(reloadPageButton)
+//        }
+        val (queueButtons, nowPage) = Buttons.queue(interaction, link, -1)
         val pages = queuePage(link, current)
-
-        val (beforePageButton, nextPageButton, reloadPageButton) = Buttons.queue
-
-        if(nowPage <= 1) {
-            nowPage = 1
-            beforePageButton.disabled = true
-        }
-        if(pages.size <= 1) {
-            nextPageButton.disabled = true
-            beforePageButton.disabled = true
-        }
-
-        val pageButtons = ActionRowBuilder().apply {
-            components.add(beforePageButton)
-            components.add(nextPageButton)
-            components.add(reloadPageButton)
-        }
 
         interaction.updatePublicMessage {
             embed {
@@ -62,7 +64,7 @@ class BeforePageBtn(bot: Kord): Button(bot) {
                     else interaction.user.avatar!!.cdnUrl.toUrl()
                 }
             }
-            components = mutableListOf(pageButtons, Buttons.controlls(link))
+            components = mutableListOf(queueButtons, Buttons.controlls(link))
         }
     }
 }

@@ -11,6 +11,8 @@ import dev.schlaubi.lavakord.audio.player.Player
 import dev.schlaubi.lavakord.kord.getLink
 import kr.blugon.lavakordqueue.RepeatMode
 import kr.blugon.lavakordqueue.queue
+import kr.blugon.lavakordqueue.volume
+import kr.blugon.melodio.Settings
 import kr.blugon.melodio.bot
 import kr.blugon.melodio.events.VoiceStateUpdate.Companion.destoryScopeRunning
 import kr.blugon.melodio.events.VoiceStateUpdate.Companion.playerDestoryScopeRunning
@@ -63,6 +65,7 @@ suspend fun ActionInteraction.playDefaultCheck(): CheckResult? {
                 } else link.repeatedShuffleCount++
             }
         }
+        link.volume = Settings.VOLUME
     }
     if(link.state == Link.State.CONNECTED || link.state == Link.State.CONNECTING) { //이미 연결 되어 있으면서
         if(voiceChannel.channelId != link.voiceChannel) { //같은 채널에 없을 때

@@ -11,5 +11,7 @@
 
   "lavalinkHost": "String",
   "lavalinkPort": "Int",
-  "lavalinkPassword": "String"
+  "lavalinkPassword": "String",
+
+  "volume": 20
 }

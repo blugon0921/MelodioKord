@@ -35,6 +35,8 @@ object Settings {
     val LAVALINK_PORT = settings.getOrNull<Int>("lavalinkPort")?: throw ConfigException("lavalinkPort")
     val LAVALINK_PASSWORD = settings.getOrNull<String>("lavalinkPassword")?: throw ConfigException("lavalinkPassword")
 
+    val VOLUME = settings.getOrNull<Int>("volume")?: throw ConfigException("volume")
+
     fun checkExistConfig(fileName: String = "config.json") {
         val settingsFile = File(fileName)
         if(!settingsFile.exists()) { //config.json is not exist
