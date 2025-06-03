@@ -42,5 +42,6 @@ class ShuffleCmd(bot: Kord): Command(bot) {
                 color = Settings.COLOR_NORMAL
             }
         }
+        Buttons.reloadQueueInGuild(link, interaction.guildId.value)
     }
 }

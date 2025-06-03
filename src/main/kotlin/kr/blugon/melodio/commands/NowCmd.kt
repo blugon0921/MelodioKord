@@ -25,7 +25,9 @@ class NowCmd(bot: Kord): Command(bot) {
             embed {
                 title = ":musical_note: 현재 재생중인 노래"
                 description = current.info.displayTitle(appendArtist = false)
-                image = current.info.artworkUrl
+                this.thumbnail {
+                    this.url = current.info.artworkUrl?: return@thumbnail
+                }
                 color = Settings.COLOR_NORMAL
                 field {
                     name = (if(current.info.sourceType == TrackSourceType.Spotify) "아티스트" else "채널").bold

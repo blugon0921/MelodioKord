@@ -9,6 +9,7 @@ import dev.schlaubi.lavakord.audio.TrackStartEvent
 import dev.schlaubi.lavakord.audio.on
 import dev.schlaubi.lavakord.audio.player.Player
 import dev.schlaubi.lavakord.kord.getLink
+import kotlinx.coroutines.delay
 import kr.blugon.lavakordqueue.RepeatMode
 import kr.blugon.lavakordqueue.queue
 import kr.blugon.lavakordqueue.volume
@@ -64,6 +65,8 @@ suspend fun ActionInteraction.playDefaultCheck(): CheckResult? {
                     link.queue.shuffle()
                 } else link.repeatedShuffleCount++
             }
+            delay(1000)
+            Buttons.reloadQueueInGuild(link, this.guildId)
         }
         link.volume = Settings.VOLUME
     }

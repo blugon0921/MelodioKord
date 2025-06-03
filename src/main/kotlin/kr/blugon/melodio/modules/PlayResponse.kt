@@ -9,6 +9,7 @@ import dev.kord.core.behavior.interaction.response.respond
 import dev.kord.rest.builder.message.embed
 import dev.schlaubi.lavakord.audio.Link
 import dev.schlaubi.lavakord.plugins.lavasrc.lavaSrcInfo
+import kotlinx.coroutines.delay
 import kr.blugon.lavakordqueue.TrackSourceType
 import kr.blugon.lavakordqueue.queue
 import kr.blugon.lavakordqueue.sourceType
@@ -31,7 +32,9 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(
                 embed {
                     title = ":musical_note: 대기열에 노래를 추가하였습니다"
                     description = data.info.displayTitle(appendArtist = false)
-                    if(data.info.artworkUrl != null) image = data.info.artworkUrl
+                    this.thumbnail {
+                        this.url = data.info.artworkUrl?: return@thumbnail
+                    }
                     color = Settings.COLOR_NORMAL
                     field {
                         name = (if(data.info.sourceType == TrackSourceType.Youtube) "채널" else "아티스트").bold
@@ -62,7 +65,9 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(
                 embed {
                     title = ":musical_note: 대기열에 재생목록을 추가하였습니다"
                     description = data.info.name.hyperlink(data.lavaSrcInfo.url?: url)
-                    image = data.lavaSrcInfo.artworkUrl?: tracks[0].info.artworkUrl
+                    thumbnail {
+                        this.url = (data.lavaSrcInfo.artworkUrl?: tracks[0].info.artworkUrl)?: return@thumbnail
+                    }
                     color = Settings.COLOR_NORMAL
                     field {
                         name = "재생목록 제작자".bold
@@ -97,7 +102,9 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(
                 embed {
                     title = ":musical_note: 대기열에 노래를 추가하였습니다"
                     description = track.info.displayTitle(appendArtist = false)
-                    image = track.info.artworkUrl
+                    this.thumbnail {
+                        this.url = track.info.artworkUrl?: return@thumbnail
+                    }
                     color = Settings.COLOR_NORMAL
                     field {
                         name = (if(track.info.sourceType == TrackSourceType.Spotify) "아티스트" else "채널").bold
@@ -130,5 +137,6 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(
     }
     if(link.player.paused) link.player.unPause()
     if(isShuffle) link.queue.shuffle()
+    delay(1000)
     Buttons.reloadControllerInChannel(link, channel)
 }

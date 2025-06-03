@@ -5,6 +5,7 @@ import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.behavior.channel.MessageChannelBehavior
 import dev.kord.core.behavior.channel.createMessage
+import dev.kord.core.behavior.edit
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.channel.MessageChannel
 import dev.kord.core.entity.interaction.GuildButtonInteraction
@@ -27,11 +28,11 @@ object Buttons {
     suspend fun deleteAllControllerInGuild(guildId: ULong) {
         val id = Snowflake(guildId)
         if(beforeControllMessage[id] != null) {
-            beforeControllMessage[id]!!.forEach {
+            repeat(beforeControllMessage[id]!!.count()) {
                 beforeControllMessage[id]!!.forEach { (c, message) ->
                     try {
                         message.delete()
-                    } catch (_: KtorRequestException) {}
+                    } catch (_: KtorRequestException) { }
                 }
             }
             beforeControllMessage.remove(id)
@@ -43,6 +44,40 @@ object Buttons {
             beforeControllMessage[guildId]?.get(channel.id)?.delete()
         } catch (_: KtorRequestException) {}
         beforeControllMessage[guildId]?.remove(channel.id)
+    }
+    suspend fun reloadQueueInGuild(link: Link, guildId: ULong) {
+        val id = Snowflake(guildId)
+        if(beforeControllMessage[id] != null) {
+            repeat(beforeControllMessage[id]!!.count()) {
+                beforeControllMessage[id]!!.forEach { (c, message) ->
+                    try {
+                        val current = link.queue.current?: return@forEach
+                        val (queueButtons, nowPage) = queue(message, link)
+                        val pages = queuePage(link, current)
+
+                        message.edit {
+                            embed {
+                                title = ":clipboard: 대기열 [${timeFormat(link.queue.duration)}]"
+                                color = Settings.COLOR_NORMAL
+                                description = pages[nowPage-1]
+                                footer {
+                                    text = "페이지 ${nowPage}/${pages.size}${
+                                        when(link.repeatMode) {
+                                            RepeatMode.TRACK -> "┃🔂 현재 곡 반복중"
+                                            RepeatMode.QUEUE -> "┃🔂 대기열 반복중"
+                                            else -> ""
+                                        }
+                                    }"
+                                    this.icon = null
+                                }
+                            }
+                            components = mutableListOf(queueButtons, controlls(link))
+                        }
+                    } catch (_: KtorRequestException) { }
+                }
+            }
+            beforeControllMessage.remove(id)
+        }
     }
     suspend fun reloadControllerInChannel(link: Link, channel: MessageChannelBehavior) {
         val guild = bot.getGuild(channel.asChannel().data.guildId.value?: return)
@@ -70,7 +105,6 @@ object Buttons {
                 this.components.add(nextPageButton.apply { if(pages.size == 1) this.disabled = true })
                 this.components.add(reloadPageButton)
             }, controlls(link))
-//            components = mutableListOf(controlls(link))
         }
     }
 
@@ -116,10 +150,13 @@ object Buttons {
         }
 
     fun queue(interaction: GuildButtonInteraction, link: Link, appendPage: Int = 0): Pair<ActionRowBuilder, Int> {
+        return queue(interaction.message, link, appendPage)
+    }
+    fun queue(message: Message, link: Link, appendPage: Int = 0): Pair<ActionRowBuilder, Int> {
         val (beforePageButton, nextPageButton, reloadPageButton) = queue
 
-        val footerText = (if(interaction.message.embeds[0].footer == null) "undefined"
-        else interaction.message.embeds[0].footer!!.text.replace(" ", "")).split("|").last().split("┃").first()
+        val footerText = (if(message.embeds[0].footer == null) "undefined"
+        else message.embeds[0].footer!!.text.replace(" ", "")).split("|").last().split("┃").first()
         var nowPage = footerText.split("/")[0].replace("페이지", "").toInt()+appendPage
         val pages = queuePage(link, link.queue.current!!)
 

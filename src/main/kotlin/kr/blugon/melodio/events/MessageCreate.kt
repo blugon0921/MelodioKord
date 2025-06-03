@@ -19,11 +19,9 @@ class MessageCreate: NamedRegistrable {
         bot.on<MessageCreateEvent> {
             val link = bot.manager.getLink(this.guildId?: return@on)
             if(link.queue.current == null) return@on
-//            val autherId = this.member?.id?.value?: return@on
-//            if(autherId == bot.selfId.value) return@on
 
-            if(this.guildId == null) return@on
             if(Buttons.beforeControllMessage[this.guildId]?.containsKey(this.message.channelId) == true) {
+                println(this.message)
                 Buttons.reloadControllerInChannel(link, message.channel)
             }
         }
