@@ -10,12 +10,12 @@ class PauseBtn(bot: Kord): Button(bot) {
 
     override suspend fun GuildButtonInteractionCreateEvent.onClick() {
         val (voiceChannel, link, player, current) = interaction.defaultCheck() ?: return
-
-        val (queueButtons, _) = Buttons.queue(interaction, link)
-
         player.pause(!player.paused)
+
+        val (_, component) = QueueUtils.embed(link, interaction)
+
         interaction.updatePublicMessage {
-            components = mutableListOf(queueButtons, Buttons.controlls(link))
+            components = component
         }
     }
 }

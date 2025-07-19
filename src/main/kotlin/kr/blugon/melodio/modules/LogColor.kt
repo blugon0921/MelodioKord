@@ -9,7 +9,7 @@ object Logger {
     }
 
     fun error(msg: Any, displayTime: Boolean = true) {
-        println("${if(displayTime) "[${nowDate().color(LogColor.Green)}] " else ""}${LogColor.Red.colorCode}$msg")
+        println("${if(displayTime) "[${nowDate().color(LogColor.Green)}] " else ""}${LogColor.Red.colorCode}$msg${LogColor.Reset.colorCode}")
     }
 }
 

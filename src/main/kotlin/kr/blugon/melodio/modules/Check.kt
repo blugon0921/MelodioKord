@@ -15,8 +15,6 @@ import kr.blugon.lavakordqueue.queue
 import kr.blugon.lavakordqueue.volume
 import kr.blugon.melodio.Settings
 import kr.blugon.melodio.bot
-import kr.blugon.melodio.events.VoiceStateUpdate.Companion.destoryScopeRunning
-import kr.blugon.melodio.events.VoiceStateUpdate.Companion.playerDestoryScopeRunning
 import kr.blugon.melodio.manager
 
 suspend fun ActionInteraction.defaultCheck(): DefaultCheckResult? {
@@ -66,7 +64,7 @@ suspend fun ActionInteraction.playDefaultCheck(): CheckResult? {
                 } else link.repeatedShuffleCount++
             }
             delay(1000)
-            Buttons.reloadQueueInGuild(link, this.guildId)
+            Buttons.reloadQueue(link, this.guildId)
         }
         link.volume = Settings.VOLUME
     }

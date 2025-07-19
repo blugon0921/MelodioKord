@@ -5,6 +5,7 @@ import dev.kord.common.entity.ButtonStyle
 import dev.kord.common.entity.DiscordPartialEmoji
 import dev.kord.common.entity.Snowflake
 import dev.kord.core.cache.data.ComponentData
+import dev.kord.core.entity.Embed
 import dev.kord.core.entity.Message
 import dev.kord.core.entity.interaction.GuildComponentInteraction
 import dev.kord.rest.builder.component.ActionRowBuilder
@@ -124,3 +125,7 @@ fun EmbedBuilder.interactedUser(interaction: GuildComponentInteraction) {
 }
 
 val Message.components: List<ComponentData?>? get() = this.data.components.value?.firstOrNull()?.components?.value
+
+fun embedBuilder(builder: EmbedBuilder.() -> Unit): EmbedBuilder {
+    return EmbedBuilder().apply(builder)
+}

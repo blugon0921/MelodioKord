@@ -138,5 +138,5 @@ suspend fun DeferredPublicMessageInteractionResponseBehavior.completePlay(
     if(link.player.paused) link.player.unPause()
     if(isShuffle) link.queue.shuffle()
     delay(1000)
-    Buttons.reloadControllerInChannel(link, channel)
+    Buttons.resendController(link, channel)
 }

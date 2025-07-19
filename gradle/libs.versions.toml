@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.0.21"
+kotlin = "2.2.0"
 shadow = "8.3.3"
 #lib
 kord = "0.15.0"
